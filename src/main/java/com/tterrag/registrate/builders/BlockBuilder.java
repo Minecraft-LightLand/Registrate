@@ -34,6 +34,7 @@ import com.tterrag.registrate.util.nullness.NonNullUnaryOperator;
 import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
@@ -43,13 +44,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.client.model.generators.BlockStateProvider.ConfiguredModelList;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.DistExecutor;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 
 /**
  * A builder for blocks, allows for customization of the {@link Block.Properties}, creation of block items, and configuration of data associated with blocks (loot tables, recipes, etc.).
@@ -103,7 +102,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     private NonNullSupplier<Supplier<BlockColor>> colorHandler;
 
     protected BlockBuilder(AbstractRegistrate<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<BlockBehaviour.Properties, T> factory, NonNullSupplier<BlockBehaviour.Properties> initialProperties) {
-        super(owner, parent, name, callback, ForgeRegistries.Keys.BLOCKS);
+        super(owner, parent, name, callback, Registries.BLOCK);
         this.factory = factory;
         this.initialProperties = initialProperties;
     }
@@ -127,16 +126,16 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * Replace the initial state of the block properties, without replacing or removing any modifications done via {@link #properties(NonNullUnaryOperator)}.
      * 
      * @param block
-     *            The block to create the initial properties from (via {@link Block.Properties#copy(BlockBehaviour)})
+     *            The block to create the initial properties from (via {@link Block.Properties#ofFullCopy(BlockBehaviour)})
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> initialProperties(NonNullSupplier<? extends Block> block) {
-        initialProperties = () -> BlockBehaviour.Properties.copy(block.get());
+        initialProperties = () -> BlockBehaviour.Properties.ofFullCopy(block.get());
         return this;
     }
 
     /**
-     * @deprecated Set your render type in your model's JSON ({@link net.minecraftforge.client.model.generators.ModelBuilder#renderType(ResourceLocation)}) or override {@link net.minecraft.client.resources.model.BakedModel#getRenderTypes(BlockState, net.minecraft.util.RandomSource, net.minecraftforge.client.model.data.ModelData)}
+     * @deprecated Set your render type in your model's JSON ({@link net.neoforged.neoforge.client.model.generators.ModelBuilder#renderType(ResourceLocation)}) or override {@link net.minecraft.client.resources.model.BakedModel#getRenderTypes(BlockState, net.minecraft.util.RandomSource, net.minecraftforge.client.model.data.ModelData)}
      */
     @Deprecated(forRemoval = true)
     public BlockBuilder<T, P> addLayer(Supplier<Supplier<RenderType>> layer) {
@@ -209,7 +208,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
                     Optional<String> model = getOwner().getDataProvider(ProviderType.BLOCKSTATE)
                             .flatMap(p -> p.getExistingVariantBuilder(getEntry()))
                             .map(b -> b.getModels().get(b.partialState()))
-                            .map(ConfiguredModelList::toJSON)
+                            .map(BlockStateProvider.ConfiguredModelList::toJSON)
                             .filter(JsonElement::isJsonObject)
                             .map(j -> j.getAsJsonObject().get("model"))
                             .map(JsonElement::getAsString);
