@@ -3,6 +3,8 @@ package com.tterrag.registrate.providers;
 import com.tterrag.registrate.AbstractRegistrate;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import com.tterrag.registrate.util.nullness.NonnullType;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.apache.commons.lang3.StringUtils;
 
 import net.minecraft.core.Registry;
@@ -17,8 +19,6 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.LanguageProvider;
-import net.minecraftforge.fml.LogicalSide;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
