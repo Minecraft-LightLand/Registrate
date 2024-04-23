@@ -33,6 +33,7 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforge.registries.RegistryBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.message.Message;
@@ -906,9 +907,9 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      *            A function to create the {@link RegistryBuilder} that defines the other properties/behaviors of the created registry
      * @return A {@link ResourceKey resource key} referencing the to-be-created registry.
      */
-    public <R> ResourceKey<Registry<R>> makeRegistry(String name, Supplier<RegistryBuilder<R>> builder) {
+    public <R> ResourceKey<Registry<R>> makeRegistry(String name, Function<ResourceKey<Registry<R>>, RegistryBuilder<R>> builder) {
         final ResourceKey<Registry<R>> registryId = ResourceKey.createRegistryKey(new ResourceLocation(getModid(), name));
-        OneTimeEventReceiver.addModListener(this, NewRegistryEvent.class, e -> e.create(builder.get().setName(registryId.location())));
+        OneTimeEventReceiver.addModListener(this, NewRegistryEvent.class, e -> e.register(builder.apply(registryId).create()));
         return registryId;
     }
 
