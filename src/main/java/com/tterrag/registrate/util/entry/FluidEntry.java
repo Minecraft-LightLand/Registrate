@@ -6,15 +6,14 @@ import javax.annotation.Nullable;
 
 import com.tterrag.registrate.AbstractRegistrate;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.fluids.FluidType;
 
-public class FluidEntry<T extends ForgeFlowingFluid> extends RegistryEntry<T> {
+public class FluidEntry<T extends BaseFlowingFluid> extends RegistryEntry<T> {
 
     private final @Nullable BlockEntry<? extends Block> block;
 
@@ -22,7 +21,7 @@ public class FluidEntry<T extends ForgeFlowingFluid> extends RegistryEntry<T> {
         super(owner, delegate);
         BlockEntry<? extends Block> block = null;
         try {
-            block = BlockEntry.cast(getSibling(ForgeRegistries.BLOCKS));
+            block = BlockEntry.cast(getSibling(Registries.BLOCK));
         } catch (IllegalArgumentException e) {} // TODO add way to get entry optionally
         this.block = block;
     }
@@ -33,7 +32,7 @@ public class FluidEntry<T extends ForgeFlowingFluid> extends RegistryEntry<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public <S extends ForgeFlowingFluid> S getSource() {
+    public <S extends BaseFlowingFluid> S getSource() {
         return (S) get().getSource();
     }
 
