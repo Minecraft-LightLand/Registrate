@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.experimental.Delegate;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -55,7 +56,7 @@ public final class DataIngredient extends Ingredient {
     private DataIngredient(Ingredient parent, ItemLike item) {
         super(Stream.empty());
         this.parent = parent;
-        this.id = ForgeRegistries.ITEMS.getKey(item.asItem());
+        this.id = BuiltInRegistries.ITEM.getKey(item.asItem());
         this.criteriaFactory = prov -> RegistrateRecipeProvider.has(item);
     }
     
