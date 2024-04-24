@@ -5,11 +5,11 @@ import com.tterrag.registrate.AbstractRegistrate;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
-public class ItemProviderEntry<T extends ItemLike> extends RegistryEntry<T> implements ItemLike {
+public class ItemProviderEntry<R extends ItemLike, T extends R> extends RegistryEntry<R, T> implements ItemLike {
 
-    public ItemProviderEntry(AbstractRegistrate<?> owner, RegistryObject<T> delegate) {
+    public ItemProviderEntry(AbstractRegistrate<?> owner, DeferredHolder<R, T> delegate) {
         super(owner, delegate);
     }
 

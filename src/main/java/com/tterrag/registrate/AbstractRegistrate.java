@@ -30,10 +30,7 @@ import net.neoforged.neoforge.data.loading.DatagenModLoader;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.registries.DataPackRegistryEvent;
-import net.neoforged.neoforge.registries.NewRegistryEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.registries.RegistryBuilder;
+import net.neoforged.neoforge.registries.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.message.Message;
@@ -135,22 +132,21 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
         ResourceLocation name;
         ResourceKey<? extends Registry<R>> type;
         NonNullSupplier<? extends T> creator;
-        RegistryEntry<T> delegate;
+        RegistryEntry<R, T> delegate;
 
         @Getter(value = AccessLevel.NONE)
         List<NonNullConsumer<? super T>> callbacks = new ArrayList<>();
 
-        Registration(ResourceLocation name, ResourceKey<? extends Registry<R>> type, NonNullSupplier<? extends T> creator, NonNullFunction<RegistryObject<T>, ? extends RegistryEntry<T>> entryFactory) {
+        Registration(ResourceLocation name, ResourceKey<? extends Registry<R>> type, NonNullSupplier<? extends T> creator, NonNullFunction<DeferredHolder<R, T>, ? extends RegistryEntry<R, T>> entryFactory) {
             this.name = name;
             this.type = type;
             this.creator =  creator.lazy();
-            this.delegate = entryFactory.apply(RegistryObject.create(name, type.location(), AbstractRegistrate.this.getModid()));
+            this.delegate = entryFactory.apply(DeferredHolder.create(type, name));
         }
 
         void register(RegisterEvent event) {
             T entry = creator.get();
             event.register(type, rh -> rh.register(name, entry));
-            delegate.updateReference(event);
             callbacks.forEach(c -> c.accept(entry));
             callbacks.clear();
         }
@@ -374,7 +370,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      * @throws NullPointerException
      *             if current name has not been set via {@link #object(String)}
      */
-    public <R, T extends R> RegistryEntry<T> get(ResourceKey<? extends Registry<R>> type) {
+    public <R, T extends R> RegistryEntry<R, T> get(ResourceKey<? extends Registry<R>> type) {
         return this.<R, T>get(currentName(), type);
     }
 
@@ -406,7 +402,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      * @throws IllegalArgumentException
      *             if no such registration has been done
      */
-    public <R, T extends R> RegistryEntry<T> get(String name, ResourceKey<? extends Registry<R>> type) {
+    public <R, T extends R> RegistryEntry<R, T> get(String name, ResourceKey<? extends Registry<R>> type) {
         return this.<R, T>getRegistration(name, type).getDelegate();
     }
 
@@ -421,11 +417,11 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      *            The name of the registry entry to request
      * @param type
      *            A class representing the registry type
-     * @return A {@link RegistryEntry} which will supply the requested entry, if it exists, otherwise the {@link RegistryEntry#empty() empty entry}
+     * @return A {@link RegistryEntry} which will supply the requested entry, if it exists
      */
-    public <R, T extends R> RegistryEntry<T> getOptional(String name, ResourceKey<? extends Registry<R>> type) {
+    public <R, T extends R> Optional<RegistryEntry<R, T>> getOptional(String name, ResourceKey<? extends Registry<R>> type) {
         Registration<R, T> reg = this.<R, T>getRegistrationUnchecked(name, type);
-        return reg == null ? RegistryEntry.empty() : reg.getDelegate();
+        return reg == null ? Optional.empty() : Optional.of(reg.getDelegate());
     }
 
     @SuppressWarnings("unchecked")
@@ -454,8 +450,8 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      * @return A collection of {@link RegistryEntry} objects representing all entries in the given registry which are known to this {@link AbstractRegistrate} object.
      */
     @SuppressWarnings({ "null", "unchecked" })
-    public <R> Collection<RegistryEntry<R>> getAll(ResourceKey<? extends Registry<R>> type) {
-        return registrations.row(type).values().stream().map(r -> (RegistryEntry<R>) r.getDelegate()).collect(Collectors.toList());
+    public <R, T extends R> Collection<RegistryEntry<R, T>> getAll(ResourceKey<? extends Registry<R>> type) {
+        return registrations.row(type).values().stream().map(r -> (RegistryEntry<R, T>) r.getDelegate()).collect(Collectors.toList());
     }
 
     /**
@@ -879,7 +875,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      *            Optional custom factory to create special {@link RegistryEntry} types
      * @return A {@link RegistryEntry} that will hold the created entry after registration is complete
      */
-    protected <R, T extends R> RegistryEntry<T> accept(String name, ResourceKey<? extends Registry<R>> type, Builder<R, T, ?, ?> builder, NonNullSupplier<? extends T> creator, NonNullFunction<RegistryObject<T>, ? extends RegistryEntry<T>> entryFactory) {
+    protected <R, T extends R> RegistryEntry<R, T> accept(String name, ResourceKey<? extends Registry<R>> type, Builder<R, T, ?, ?> builder, NonNullSupplier<? extends T> creator, NonNullFunction<DeferredHolder<R, T>, ? extends RegistryEntry<R, T>> entryFactory) {
         Registration<R, T> reg = new Registration<>(new ResourceLocation(modid, name), type, creator, entryFactory);
         log.debug(DebugMarkers.REGISTER, "Captured registration for entry {}:{} of type {}", getModid(), name, type.location());
         registerCallbacks.removeAll(Pair.of(name, type)).forEach(callback -> {
@@ -955,19 +951,19 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
 
     // Generic
 
-    public <R, T extends R> RegistryEntry<T> simple(ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
+    public <R, T extends R> RegistryEntry<R, T> simple(ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
         return simple(currentName(), registryType, factory);
     }
 
-    public <R, T extends R> RegistryEntry<T> simple(String name, ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
+    public <R, T extends R> RegistryEntry<R, T> simple(String name, ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
         return simple(this, name, registryType, factory);
     }
 
-    public <R, T extends R, P> RegistryEntry<T> simple(P parent, ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
+    public <R, T extends R, P> RegistryEntry<R, T> simple(P parent, ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
         return simple(parent, currentName(), registryType, factory);
     }
 
-    public <R, T extends R, P> RegistryEntry<T> simple(P parent, String name, ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
+    public <R, T extends R, P> RegistryEntry<R, T> simple(P parent, String name, ResourceKey<Registry<R>> registryType, NonNullSupplier<T> factory) {
         return generic(parent, name, registryType, factory).register();
     }
 

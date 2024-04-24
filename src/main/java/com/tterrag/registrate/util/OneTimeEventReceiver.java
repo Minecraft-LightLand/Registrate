@@ -106,7 +106,8 @@ public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullT
                 try {
                     final MethodHandle mh = getBusId;
                     if (mh != null) {
-                        EventListenerHelper.getListenerList(t.getRight()).getListeners((int) mh.invokeExact((EventBus) t.getLeft()));
+                        // FIXME
+                        //EventListenerHelper.getListenerList(t.getRight()).getListeners((int) mh.invokeExact((EventBus) t.getLeft()));
                     }
                 } catch (Throwable ex) {
                     log.warn("Failed to clear listener list of one-time event receiver, so the receiver has leaked. This is not a big deal.", ex);

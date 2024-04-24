@@ -11,11 +11,11 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
-public class BlockEntityEntry<T extends BlockEntity> extends RegistryEntry<BlockEntityType<T>> {
+public class BlockEntityEntry<T extends BlockEntity> extends RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> {
 
-    public BlockEntityEntry(AbstractRegistrate<?> owner, RegistryObject<BlockEntityType<T>> delegate) {
+    public BlockEntityEntry(AbstractRegistrate<?> owner, DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> delegate) {
         super(owner, delegate);
     }
 
@@ -67,7 +67,7 @@ public class BlockEntityEntry<T extends BlockEntity> extends RegistryEntry<Block
         return is(be) ? (T) be : null;
     }
 
-    public static <T extends BlockEntity> BlockEntityEntry<T> cast(RegistryEntry<BlockEntityType<T>> entry) {
+    public static <T extends BlockEntity> BlockEntityEntry<T> cast(RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> entry) {
         return RegistryEntry.cast(BlockEntityEntry.class, entry);
     }
 }

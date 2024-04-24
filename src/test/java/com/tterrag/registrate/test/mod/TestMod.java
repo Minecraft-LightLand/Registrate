@@ -12,12 +12,7 @@ import com.tterrag.registrate.Registrate;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.DataIngredient;
-import com.tterrag.registrate.util.entry.BlockEntityEntry;
-import com.tterrag.registrate.util.entry.BlockEntry;
-import com.tterrag.registrate.util.entry.EntityEntry;
-import com.tterrag.registrate.util.entry.FluidEntry;
-import com.tterrag.registrate.util.entry.ItemEntry;
-import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.tterrag.registrate.util.entry.*;
 import com.tterrag.registrate.util.nullness.NonnullType;
 
 import net.minecraft.advancements.Advancement;
@@ -33,6 +28,7 @@ import net.minecraft.client.renderer.entity.PigRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
@@ -101,6 +97,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.RegistryBuilder;
 
 @Mod("testmod")
 public class TestMod {
@@ -196,13 +193,13 @@ public class TestMod {
     private final Registrate registrate = Registrate
             .create("testmod");
 
-    private final RegistryEntry<CreativeModeTab> testcreativetab = registrate.object("test_creative_mode_tab")
+    private final RegistryEntry<CreativeModeTab, CreativeModeTab> testcreativetab = registrate.object("test_creative_mode_tab")
             .defaultCreativeTab(tab -> tab.withLabelColor(0xFF00AA00))
             .register();
 
     private final AtomicBoolean sawCallback = new AtomicBoolean();
 
-    private final RegistryEntry<Item> testitem = registrate.object("testitem")
+    private final RegistryEntry<Item, Item> testitem = registrate.object("testitem")
             .item(Item::new)
                 .onRegister(item -> sawCallback.set(true))
                 .properties(p -> p.food(new FoodProperties.Builder().nutrition(1).saturationMod(0.2f).build()))
@@ -254,11 +251,11 @@ public class TestMod {
             .simpleItem()
             .register();
 
-    private final ItemEntry<BlockItem> testblockitem = (ItemEntry<BlockItem>) testblock.<Item, BlockItem>getSibling(Registries.ITEM);
-    private final BlockEntityEntry<ChestBlockEntity> testblockbe = BlockEntityEntry.cast(testblock.getSibling(Registries.BLOCK_ENTITY_TYPE));
+    private final ItemEntry<BlockItem> testblockitem = (ItemEntry<BlockItem>) testblock.<Item, BlockItem>getSibling(BuiltInRegistries.ITEM);
+    private final BlockEntityEntry<ChestBlockEntity> testblockbe = BlockEntityEntry.cast(testblock.getSibling(BuiltInRegistries.BLOCK_ENTITY_TYPE));
 
     @SuppressWarnings("deprecation")
-    private final RegistryEntry<EntityType<TestEntity>> testentity = registrate.object("testentity")
+    private final RegistryEntry<EntityType<?>, EntityType<TestEntity>> testentity = registrate.object("testentity")
             .entity(TestEntity::new, MobCategory.CREATURE)
             .attributes(Pig::createAttributes)
             .renderer(() -> PigRenderer::new)
@@ -303,11 +300,11 @@ public class TestMod {
 //                .build()
             .register();
 
-    private final RegistryEntry<MenuType<ChestMenu>> testmenu = registrate.object("testmenu")
+    private final RegistryEntry<MenuType<?>, MenuType<ChestMenu>> testmenu = registrate.object("testmenu")
             .menu((type, windowId, inv) -> new ChestMenu(type, windowId, inv, new SimpleContainer(9 * 9), 9), () -> ContainerScreen::new)
             .register();
 
-    private final RegistryEntry<TestEnchantment> testenchantment = registrate.object("testenchantment")
+    private final RegistryEntry<Enchantment, TestEnchantment> testenchantment = registrate.object("testenchantment")
             .enchantment(EnchantmentCategory.ARMOR, TestEnchantment::new)
             .rarity(Rarity.UNCOMMON)
             .addArmorSlots()
@@ -362,8 +359,8 @@ public class TestMod {
 //            .dimensionTypeCallback(t -> testdimensiontype = t)
 //            .register();
 
-    private final ResourceKey<Registry<TestCustomRegistryEntry>> CUSTOM_REGISTRY = registrate.makeRegistry("custom", () -> new RegistryBuilder<>());
-    private final RegistryEntry<TestCustomRegistryEntry> testcustom = registrate.object("testcustom")
+    private final ResourceKey<Registry<TestCustomRegistryEntry>> CUSTOM_REGISTRY = registrate.makeRegistry("custom", RegistryBuilder::new);
+    private final RegistryEntry<TestCustomRegistryEntry, TestCustomRegistryEntry> testcustom = registrate.object("testcustom")
             .simple(CUSTOM_REGISTRY, TestCustomRegistryEntry::new);
 
 //    private final BlockBuilder<Block, Registrate> INVALID_TEST = registrate.object("invalid")

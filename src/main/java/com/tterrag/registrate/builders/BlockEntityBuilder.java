@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.DistExecutor;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * A builder for block entities, allows for customization of the valid blocks.
@@ -138,12 +139,12 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
         return BlockEntityType.Builder.<T>of((pos, state) -> factory.create((BlockEntityType<T>) supplier.get(), pos, state), validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new))
                 .build(null);
     }
-    
+
     @Override
-    protected RegistryEntry<BlockEntityType<T>> createEntryWrapper(RegistryObject<BlockEntityType<T>> delegate) {
+    protected RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> createEntryWrapper(DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> delegate) {
         return new BlockEntityEntry<>(getOwner(), delegate);
     }
-    
+
     @Override
     public BlockEntityEntry<T> register() {
         return (BlockEntityEntry<T>) super.register();

@@ -4,11 +4,11 @@ import com.tterrag.registrate.AbstractRegistrate;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
-public class BlockEntry<T extends Block> extends ItemProviderEntry<T> {
+public class BlockEntry<T extends Block> extends ItemProviderEntry<Block, T> {
 
-    public BlockEntry(AbstractRegistrate<?> owner, RegistryObject<T> delegate) {
+    public BlockEntry(AbstractRegistrate<?> owner, DeferredHolder<Block, T> delegate) {
         super(owner, delegate);
     }
 
@@ -20,7 +20,7 @@ public class BlockEntry<T extends Block> extends ItemProviderEntry<T> {
         return is(state.getBlock());
     }
     
-    public static <T extends Block> BlockEntry<T> cast(RegistryEntry<T> entry) {
+    public static <T extends Block> BlockEntry<T> cast(RegistryEntry<Block, T> entry) {
         return RegistryEntry.cast(BlockEntry.class, entry);
     }
 }

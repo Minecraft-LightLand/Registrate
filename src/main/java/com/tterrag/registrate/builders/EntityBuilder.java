@@ -31,6 +31,7 @@ import net.neoforged.fml.DistExecutor;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
@@ -286,7 +287,7 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
     protected void injectSpawnEggType(EntityType<T> entry) {}
 
     @Override
-    protected RegistryEntry<EntityType<T>> createEntryWrapper(RegistryObject<EntityType<T>> delegate) {
+    protected RegistryEntry<EntityType<?>, EntityType<T>> createEntryWrapper(DeferredHolder<EntityType<?>, EntityType<T>> delegate) {
         return new EntityEntry<>(getOwner(), delegate);
     }
 

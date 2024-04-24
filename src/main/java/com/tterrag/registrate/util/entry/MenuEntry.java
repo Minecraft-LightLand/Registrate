@@ -12,10 +12,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraft.world.inventory.MenuType;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
-public class MenuEntry<T extends AbstractContainerMenu> extends RegistryEntry<MenuType<T>> {
+public class MenuEntry<T extends AbstractContainerMenu> extends RegistryEntry<MenuType<?>, MenuType<T>> {
 
-    public MenuEntry(AbstractRegistrate<?> owner, RegistryObject<MenuType<T>> delegate) {
+    public MenuEntry(AbstractRegistrate<?> owner, DeferredHolder<MenuType<?>, MenuType<T>> delegate) {
         super(owner, delegate);
     }
 

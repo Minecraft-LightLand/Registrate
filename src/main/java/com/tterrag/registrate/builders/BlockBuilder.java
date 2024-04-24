@@ -49,6 +49,7 @@ import net.neoforged.fml.DistExecutor;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * A builder for blocks, allows for customization of the {@link Block.Properties}, creation of block items, and configuration of data associated with blocks (loot tables, recipes, etc.).
@@ -374,12 +375,12 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         properties = propertiesCallback.apply(properties);
         return factory.apply(properties);
     }
-    
+
     @Override
-    protected RegistryEntry<T> createEntryWrapper(RegistryObject<T> delegate) {
+    protected RegistryEntry<Block, T> createEntryWrapper(DeferredHolder<Block, T> delegate) {
         return new BlockEntry<>(getOwner(), delegate);
     }
-    
+
     @Override
     public BlockEntry<T> register() {
         return (BlockEntry<T>) super.register();
