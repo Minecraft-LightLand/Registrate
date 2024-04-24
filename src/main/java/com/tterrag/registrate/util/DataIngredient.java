@@ -21,8 +21,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
-import net.minecraftforge.registries.ForgeRegistries;
 
 /**
  * A helper for data generation when using ingredients as input(s) to recipes.<br>
@@ -35,9 +33,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 public final class DataIngredient extends Ingredient {
 
     private interface Excludes {
-
-        IIngredientSerializer<DataIngredient> getSerializer();
-
         void toNetwork(FriendlyByteBuf buffer);
         
         boolean checkInvalidation();
@@ -72,11 +67,6 @@ public final class DataIngredient extends Ingredient {
         this.parent = parent;
         this.id = id;
         this.criteriaFactory = prov -> RegistrateRecipeProvider.inventoryTrigger(predicates);
-    }
-
-    @Override
-    public IIngredientSerializer<DataIngredient> getSerializer() {
-        throw new UnsupportedOperationException("DataIngredient should only be used for data generation!");
     }
     
     public InventoryChangeTrigger.TriggerInstance getCritereon(RegistrateRecipeProvider prov) {
