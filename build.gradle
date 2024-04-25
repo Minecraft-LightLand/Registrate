@@ -1,5 +1,5 @@
 plugins {
-    id "io.freefair.lombok" version "6.1.0-m3"
+    id "io.freefair.lombok" version "8.6"
     id 'com.matthewprenger.cursegradle' version '1.4.0'
     id 'org.ajoberstar.grgit' version '4.1.0'
 //    id "com.palantir.revapi" version "1.7.0"
@@ -125,13 +125,14 @@ publishing {
         if (project.hasProperty('mavendir')) {
             maven { url mavendir }
         }
-        if (System.getenv("USER") == "ithundxr") {
+
+        def mavenToken = System.getenv("MAVEN_TOKEN")
+        if (mavenToken != null) {
             maven {
-                name = "IThundxrMaven"
                 url = "https://maven.ithundxr.dev/hidden"
-                credentials(PasswordCredentials)
-                authentication {
-                    basic(BasicAuthentication)
+                credentials {
+                    username = "registrate-fork-github"
+                    password = mavenToken
                 }
             }
         }
