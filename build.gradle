@@ -34,8 +34,6 @@ revapi {
 }
 */
 
-//todo
-
 runs {
     configureEach {
         systemProperty 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
@@ -53,62 +51,9 @@ runs {
     data {
         environmentVariables 'target', 'fmluserdevdata'
 
-
         //programArguments '--mod', 'testmod', '--all', '--output', rootProject.file('src/generated/resources/'), '--existing', rootProject.file('src/test/resources')
     }
 }
-
-//runs {
-//    client {
-//        taskName 'testmod_client'
-//
-//        workingDirectory project.file('run')
-//
-//        property 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
-//        property 'forge.logging.console.level', 'debug'
-//
-//        mods {
-//            testmod {
-//                source sourceSets.test
-//                source sourceSets.main
-//            }
-//        }
-//    }
-//    server {
-//        taskName 'testmod_server'
-//
-//        workingDirectory project.file('run')
-//
-//        property 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
-//        property 'forge.logging.console.level', 'debug'
-//
-//        mods {
-//            testmod {
-//                source sourceSets.test
-//                source sourceSets.main
-//            }
-//        }
-//    }
-//    data {
-//        taskName 'testmod_data'
-//
-//        workingDirectory project.file('run')
-//
-//        environment 'target', 'fmluserdevdata'
-//
-//        property 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
-//        property 'forge.logging.console.level', 'debug'
-//
-//        mods {
-//            testmod {
-//                source sourceSets.test
-//                source sourceSets.main
-//            }
-//        }
-//
-//        args '--mod', 'testmod', '--all', '--output', rootProject.file('src/generated/resources/'), '--existing', rootProject.file('src/test/resources')
-//    }
-//}
 
 sourceSets.main.resources {
     srcDir 'src/generated/resources'
