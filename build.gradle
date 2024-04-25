@@ -128,7 +128,7 @@ publishing {
         String mavenToken = System.getenv("MAVEN_TOKEN")
         if (mavenToken != null) {
             maven {
-                url = uri("https://maven.ithundxr.dev/hidden")
+                url = "https://maven.ithundxr.dev/hidden"
                 credentials {
                     username = "registrate-fork-github"
                     password = mavenToken
