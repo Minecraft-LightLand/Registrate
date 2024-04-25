@@ -35,6 +35,36 @@ revapi {
 */
 
 //todo
+
+runs {
+    configureEach {
+        systemProperty 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
+        systemProperty 'forge.logging.console.level', 'debug'
+
+        workingDirectory project.file('run')
+
+        modSource sourceSets.test
+        modSource sourceSets.main
+    }
+
+    client {
+        //taskName 'testmod_client'
+    }
+
+    server {
+        //taskName 'testmod_server'
+    }
+
+    data {
+        //taskName 'testmod_data'
+
+        environmentVariables 'target', 'fmluserdevdata'
+
+
+        //programArguments '--mod', 'testmod', '--all', '--output', rootProject.file('src/generated/resources/'), '--existing', rootProject.file('src/test/resources')
+    }
+}
+
 //runs {
 //    client {
 //        taskName 'testmod_client'
