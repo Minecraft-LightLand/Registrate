@@ -27,8 +27,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
  * @param <S>
  *            The type of the entry
  */
-@EqualsAndHashCode(of = "delegate")
-public class RegistryEntry<R, S extends R> implements NonNullSupplier<S> {
+@EqualsAndHashCode(of = "delegate", callSuper = false)
+public class RegistryEntry<R, S extends R> extends DeferredHolder<R, S> implements NonNullSupplier<S> {
     private interface Exclusions<R, T extends R> {
         T get();
         boolean is(ResourceLocation id);
@@ -47,6 +47,8 @@ public class RegistryEntry<R, S extends R> implements NonNullSupplier<S> {
 
     @SuppressWarnings("unused")
     public RegistryEntry(AbstractRegistrate<?> owner, DeferredHolder<R, S> delegate) {
+        super(delegate.getKey());
+
         if (owner == null)
             throw new NullPointerException("Owner must not be null");
         if (delegate == null)
