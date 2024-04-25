@@ -142,7 +142,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
 
     @Override
     protected RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> createEntryWrapper(DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> delegate) {
-        return new BlockEntityEntry<>(getOwner(), delegate);
+        return new BlockEntityEntry<>(getOwner(), delegate.getKey());
     }
 
     @Override

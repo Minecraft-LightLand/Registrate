@@ -74,7 +74,7 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     }
 
     protected RegistryEntry<R, T> createEntryWrapper(DeferredHolder<R, T> delegate) {
-        return new RegistryEntry<>(getOwner(), delegate);
+        return new RegistryEntry<>(getOwner(), delegate.getKey());
     }
 
     @Override

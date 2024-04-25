@@ -621,7 +621,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
 
     @Override
     protected RegistryEntry<Fluid, T> createEntryWrapper(DeferredHolder<Fluid, T> delegate) {
-        return new FluidEntry<>(getOwner(), delegate);
+        return new FluidEntry<>(getOwner(), delegate.getKey());
     }
 
     // Basic default fluid type implementation.

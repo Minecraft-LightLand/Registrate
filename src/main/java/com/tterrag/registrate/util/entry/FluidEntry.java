@@ -8,6 +8,7 @@ import com.tterrag.registrate.AbstractRegistrate;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
@@ -19,8 +20,8 @@ public class FluidEntry<T extends BaseFlowingFluid> extends RegistryEntry<Fluid,
 
     private final @Nullable BlockEntry<? extends Block> block;
 
-    public FluidEntry(AbstractRegistrate<?> owner, DeferredHolder<Fluid, T> delegate) {
-        super(owner, delegate);
+    public FluidEntry(AbstractRegistrate<?> owner, ResourceKey<Fluid> key) {
+        super(owner, key);
         BlockEntry<? extends Block> block = null;
         try {
             block = BlockEntry.cast(getSibling(BuiltInRegistries.BLOCK));

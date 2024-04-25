@@ -1,17 +1,17 @@
 package com.tterrag.registrate.util.entry;
 
 import com.tterrag.registrate.AbstractRegistrate;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nullable;
 
 public class EntityEntry<T extends Entity> extends RegistryEntry<EntityType<?>, EntityType<T>> {
 
-    public EntityEntry(AbstractRegistrate<?> owner, DeferredHolder<EntityType<?>, EntityType<T>> delegate) {
-        super(owner, delegate);
+    public EntityEntry(AbstractRegistrate<?> owner, ResourceKey<EntityType<?>> key) {
+        super(owner, key);
     }
 
     public @Nullable T create(Level world) {

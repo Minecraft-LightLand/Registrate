@@ -3,22 +3,12 @@ package com.tterrag.registrate.util.entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
-
-import com.mojang.datafixers.util.Either;
 import com.tterrag.registrate.AbstractRegistrate;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import com.tterrag.registrate.util.nullness.NonnullType;
 
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Delegate;
-import net.minecraft.core.HolderOwner;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
@@ -27,55 +17,16 @@ import net.neoforged.neoforge.registries.DeferredHolder;
  * @param <S>
  *            The type of the entry
  */
-@EqualsAndHashCode(of = "delegate", callSuper = false)
 public class RegistryEntry<R, S extends R> extends DeferredHolder<R, S> implements NonNullSupplier<S> {
-    private interface Exclusions<R, T extends R> {
-        T get();
-        boolean is(ResourceLocation id);
-        boolean is(ResourceKey<R> key);
-        boolean is(Predicate<ResourceKey<R>> filter);
-        boolean is(TagKey<R> tag);
-        Stream<TagKey<R>> tags();
-        Either<ResourceKey<R>, R> unwrap();
-        Optional<ResourceKey<R>> unwrapKey();
-        boolean canSerializeIn(HolderOwner<R> owner);
-    }
-
     private final AbstractRegistrate<?> owner;
-    @Delegate(excludes = Exclusions.class)
-    private final @Nullable DeferredHolder<R, S> delegate;
 
     @SuppressWarnings("unused")
-    public RegistryEntry(AbstractRegistrate<?> owner, DeferredHolder<R, S> delegate) {
-        super(delegate.getKey());
+    public RegistryEntry(AbstractRegistrate<?> owner, ResourceKey<R> key) {
+        super(key);
 
         if (owner == null)
             throw new NullPointerException("Owner must not be null");
-        if (delegate == null)
-            throw new NullPointerException("Delegate must not be null");
         this.owner = owner;
-        this.delegate = delegate;
-    }
-
-    /**
-     * Get the entry, throwing an exception if it is not present for any reason.
-     *
-     * @return The (non-null) entry
-     */
-    @Override
-    public @NonnullType S get() {
-        DeferredHolder<R, S> delegate = this.delegate;
-        return Objects.requireNonNull(getUnchecked(), () -> delegate == null ? "Registry entry is empty" : "Registry entry not present: " + delegate.getId());
-    }
-
-    /**
-     * Get the entry without performing any checks.
-     *
-     * @return The (nullable) entry
-     */
-    public @Nullable S getUnchecked() {
-        DeferredHolder<R, S> delegate = this.delegate;
-        return delegate == null ? null : delegate.asOptional().orElse(null);
     }
 
     public <X, Y extends X> RegistryEntry<X, Y> getSibling(ResourceKey<? extends Registry<X>> registryType) {
