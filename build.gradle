@@ -125,6 +125,16 @@ publishing {
         if (project.hasProperty('mavendir')) {
             maven { url mavendir }
         }
+        if (System.getenv("USER") == "ithundxr") {
+            maven {
+                name = "IThundxrMaven"
+                url = "https://maven.ithundxr.dev/hidden"
+                credentials(PasswordCredentials)
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
     }
 }
 
