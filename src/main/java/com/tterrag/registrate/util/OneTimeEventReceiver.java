@@ -64,12 +64,14 @@ public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullT
     private static final @Nullable MethodHandle getBusId;
     static {
         MethodHandle ret;
-        try {
-            ret = MethodHandles.lookup().unreflectGetter(ObfuscationReflectionHelper.findField(EventBus.class, "busID"));
-        } catch (IllegalAccessException e) {
-            log.warn("Failed to set up EventBus reflection to release one-time event listeners, leaks will occur. This is not a big deal.");
-            ret = null;
-        }
+        //fixme, field was removed https://github.com/neoforged/Bus/commit/e4ced90a7acaf79c1241d5458c27a40d5c62b1c7
+//        try {
+//            ret = MethodHandles.lookup().unreflectGetter(ObfuscationReflectionHelper.findField(EventBus.class, "busID"));
+//        } catch (IllegalAccessException e) {
+//            log.warn("Failed to set up EventBus reflection to release one-time event listeners, leaks will occur. This is not a big deal.");
+//            ret = null;
+//        }
+        ret = null;
         getBusId = ret;
     }
 
@@ -101,19 +103,20 @@ public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullT
 
     private static void onLoadComplete(FMLLoadCompleteEvent event) {
         event.enqueueWork(() -> {
-            toUnregister.forEach(t -> {
-                t.getLeft().unregister(t.getMiddle());
-                try {
-                    final MethodHandle mh = getBusId;
-                    if (mh != null) {
-                        // FIXME
-                        //EventListenerHelper.getListenerList(t.getRight()).getListeners((int) mh.invokeExact((EventBus) t.getLeft()));
-                    }
-                } catch (Throwable ex) {
-                    log.warn("Failed to clear listener list of one-time event receiver, so the receiver has leaked. This is not a big deal.", ex);
-                }
-            });
-            toUnregister.clear();
+            // FIXME
+//            toUnregister.forEach(t -> {
+//                t.getLeft().unregister(t.getMiddle());
+//                try {
+//                    final MethodHandle mh = getBusId;
+//                    if (mh != null) {
+//                        // FIXME
+//                        //EventListenerHelper.getListenerList(t.getRight()).getListeners((int) mh.invokeExact((EventBus) t.getLeft()));
+//                    }
+//                } catch (Throwable ex) {
+//                    log.warn("Failed to clear listener list of one-time event receiver, so the receiver has leaked. This is not a big deal.", ex);
+//                }
+//            });
+//            toUnregister.clear();
         });
     }
 }
