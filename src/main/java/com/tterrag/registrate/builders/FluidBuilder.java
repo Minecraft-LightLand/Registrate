@@ -566,7 +566,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         // and if it was possible to undo this change, it might result in the user translation getting
         // silently lost, as there's no good way to check whether the translation key was changed.
         // TODO improve this?
-        if (block.isPresent()) {
+        if (block.isPresent() && block.get().isBound()) {
             properties.descriptionId(block.get().get().getDescriptionId());
             setData(ProviderType.LANG, NonNullBiConsumer.noop());
         } else {
