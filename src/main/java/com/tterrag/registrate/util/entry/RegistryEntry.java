@@ -24,31 +24,29 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 /**
  * Wraps a {@link net.neoforged.neoforge.registries.DeferredHolder}, providing a cleaner API with null-safe access, and registrate-specific extensions such as {@link #getSibling(ResourceKey)}.
  *
- * @param <T>
+ * @param <S>
  *            The type of the entry
  */
 @EqualsAndHashCode(of = "delegate")
-public class RegistryEntry<R, T extends R> implements NonNullSupplier<T> {
-    private interface Exclusions<S, U extends S> {
-
-        U get();
-
+public class RegistryEntry<R, S extends R> implements NonNullSupplier<S> {
+    private interface Exclusions<R, T extends R> {
+        T get();
         boolean is(ResourceLocation id);
-        boolean is(ResourceKey<S> key);
-        boolean is(Predicate<ResourceKey<S>> filter);
-        boolean is(TagKey<S> tag);
-        Stream<TagKey<S>> tags();
-        Either<ResourceKey<S>, S> unwrap();
-        Optional<ResourceKey<S>> unwrapKey();
-        boolean canSerializeIn(HolderOwner<S> owner);
+        boolean is(ResourceKey<R> key);
+        boolean is(Predicate<ResourceKey<R>> filter);
+        boolean is(TagKey<R> tag);
+        Stream<TagKey<R>> tags();
+        Either<ResourceKey<R>, R> unwrap();
+        Optional<ResourceKey<R>> unwrapKey();
+        boolean canSerializeIn(HolderOwner<R> owner);
     }
 
     private final AbstractRegistrate<?> owner;
     @Delegate(excludes = Exclusions.class)
-    private final @Nullable DeferredHolder<R, T> delegate;
+    private final @Nullable DeferredHolder<R, S> delegate;
 
     @SuppressWarnings("unused")
-    public RegistryEntry(AbstractRegistrate<?> owner, DeferredHolder<R, T> delegate) {
+    public RegistryEntry(AbstractRegistrate<?> owner, DeferredHolder<R, S> delegate) {
         if (owner == null)
             throw new NullPointerException("Owner must not be null");
         if (delegate == null)
@@ -63,8 +61,8 @@ public class RegistryEntry<R, T extends R> implements NonNullSupplier<T> {
      * @return The (non-null) entry
      */
     @Override
-    public @NonnullType T get() {
-        DeferredHolder<R, T> delegate = this.delegate;
+    public @NonnullType S get() {
+        DeferredHolder<R, S> delegate = this.delegate;
         return Objects.requireNonNull(getUnchecked(), () -> delegate == null ? "Registry entry is empty" : "Registry entry not present: " + delegate.getId());
     }
 
@@ -73,8 +71,8 @@ public class RegistryEntry<R, T extends R> implements NonNullSupplier<T> {
      *
      * @return The (nullable) entry
      */
-    public @Nullable T getUnchecked() {
-        DeferredHolder<R, T> delegate = this.delegate;
+    public @Nullable S getUnchecked() {
+        DeferredHolder<R, S> delegate = this.delegate;
         return delegate == null ? null : delegate.asOptional().orElse(null);
     }
 
@@ -95,7 +93,7 @@ public class RegistryEntry<R, T extends R> implements NonNullSupplier<T> {
      * @throws NullPointerException
      *             if the predicate is null
      */
-    public Optional<RegistryEntry<R, T>> filter(Predicate<R> predicate) {
+    public Optional<RegistryEntry<R, S>> filter(Predicate<R> predicate) {
         Objects.requireNonNull(predicate);
         if (predicate.test(get())) {
             return Optional.of(this);
