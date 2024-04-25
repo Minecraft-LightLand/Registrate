@@ -47,6 +47,9 @@ runs {
         modSource sourceSets.main
     }
 
+    client {}
+    server {}
+
     data {
         environmentVariables 'target', 'fmluserdevdata'
 
