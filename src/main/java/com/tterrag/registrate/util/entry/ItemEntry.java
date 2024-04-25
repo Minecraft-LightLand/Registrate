@@ -4,7 +4,6 @@ import com.tterrag.registrate.AbstractRegistrate;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class ItemEntry<T extends Item> extends ItemProviderEntry<Item, T> {
 
