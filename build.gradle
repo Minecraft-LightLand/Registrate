@@ -47,17 +47,7 @@ runs {
         modSource sourceSets.main
     }
 
-    client {
-        //taskName 'testmod_client'
-    }
-
-    server {
-        //taskName 'testmod_server'
-    }
-
     data {
-        //taskName 'testmod_data'
-
         environmentVariables 'target', 'fmluserdevdata'
 
 
