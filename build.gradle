@@ -10,7 +10,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'eclipse'
 
 boolean dev = System.getenv('RELEASE') == null || System.getenv('RELEASE').equals('false')
-def getVersion = {
+def getVersionOld = {
     def raw = grgit.describe(commit: 'HEAD', longDescr: true, tags: true)
     def desc = (raw == null ? '0.0-0-unknown' : grgit.describe(commit: 'HEAD', longDescr: true, tags: true)).split('-') as List
     System.out.println(desc)
@@ -18,6 +18,13 @@ def getVersion = {
     def offset = desc.remove(desc.size() - 1)
     return project.mod_version.replace('x', offset) + (System.getenv("BUILD_NUMBER") == null ? "+${hash}" : '')
 }
+
+def getVersion = {
+    if (System.getenv("BUILD_NUMBER") != null)
+        return project.mod_version.replace('x', System.getenv("BUILD_NUMBER"))
+    return getVersionOld()
+}
+
 System.out.println(JavaVersion.current())
 
 version = "MC${minecraft_version}-${getVersion()}"
