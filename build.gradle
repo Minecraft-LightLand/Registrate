@@ -125,19 +125,6 @@ publishing {
         if (project.hasProperty('mavendir')) {
             maven { url mavendir }
         }
-        String mavenToken = System.getenv("MAVEN_TOKEN")
-        if (mavenToken != null) {
-            maven {
-                url = "https://maven.ithundxr.dev/hidden"
-                credentials {
-                    username = "registrate-fork-github"
-                    password = mavenToken
-                }
-                authentication {
-                    basic(BasicAuthentication)
-                }
-            }
-        }
     }
 }
 
