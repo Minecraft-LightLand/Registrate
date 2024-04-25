@@ -133,6 +133,9 @@ publishing {
                     username = "registrate-fork-github"
                     password = mavenToken
                 }
+                authentication {
+                    basic(BasicAuthentication)
+                }
             }
         }
     }
