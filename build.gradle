@@ -126,7 +126,7 @@ publishing {
             maven { url mavendir }
         }
         String mavenToken = System.getenv("MAVEN_TOKEN")
-        if (mavenToken != null && mavenToken.isEmpty()) {
+        if (mavenToken != null) {
             maven {
                 url = uri("https://maven.ithundxr.dev/hidden")
                 credentials {
