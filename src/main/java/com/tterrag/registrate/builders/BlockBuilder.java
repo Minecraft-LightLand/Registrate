@@ -23,6 +23,7 @@ import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.providers.loot.RegistrateBlockLootTables;
 import com.tterrag.registrate.providers.loot.RegistrateLootTableProvider.LootType;
 import com.tterrag.registrate.util.OneTimeEventReceiver;
+import com.tterrag.registrate.util.RegistrateDistExecutor;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
@@ -45,7 +46,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.DistExecutor;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
@@ -136,11 +136,11 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     }
 
     /**
-     * @deprecated Set your render type in your model's JSON ({@link net.neoforged.neoforge.client.model.generators.ModelBuilder#renderType(ResourceLocation)}) or override {@link net.minecraft.client.resources.model.BakedModel#getRenderTypes(BlockState, net.minecraft.util.RandomSource, net.minecraftforge.client.model.data.ModelData)}
+     * @deprecated Set your render type in your model's JSON ({@link net.neoforged.neoforge.client.model.generators.ModelBuilder#renderType(ResourceLocation)}) or override {@link net.minecraft.client.resources.model.BakedModel#getRenderTypes(BlockState, net.minecraft.util.RandomSource,  net.neoforged.neoforge.client.model.data.ModelData)}
      */
     @Deprecated(forRemoval = true)
     public BlockBuilder<T, P> addLayer(Supplier<Supplier<RenderType>> layer) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+        RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid block layer: " + layer);
         });
         if (this.renderLayers.isEmpty()) {
@@ -152,7 +152,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
 
     @SuppressWarnings("deprecation")
     protected void registerLayers(T entry) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+        RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
                 if (renderLayers.size() == 1) {
                     final RenderType layer = renderLayers.get(0).get().get();
@@ -259,7 +259,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     // TODO it might be worthwhile to abstract this more and add the capability to automatically copy to the item
     public BlockBuilder<T, P> color(NonNullSupplier<Supplier<BlockColor>> colorHandler) {
         if (this.colorHandler == null) {
-            DistExecutor.runWhenOn(Dist.CLIENT, () -> this::registerBlockColor);
+            RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerBlockColor);
         }
         this.colorHandler = colorHandler;
         return this;

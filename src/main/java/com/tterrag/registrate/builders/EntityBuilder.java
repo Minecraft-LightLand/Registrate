@@ -7,6 +7,7 @@ import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.providers.loot.RegistrateEntityLootTables;
 import com.tterrag.registrate.providers.loot.RegistrateLootTableProvider.LootType;
 import com.tterrag.registrate.util.OneTimeEventReceiver;
+import com.tterrag.registrate.util.RegistrateDistExecutor;
 import com.tterrag.registrate.util.entry.EntityEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
@@ -27,10 +28,11 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.DistExecutor;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nullable;
@@ -114,8 +116,8 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
      * @return this {@link EntityBuilder}
      */
     public EntityBuilder<T, P> renderer(NonNullSupplier<NonNullFunction<EntityRendererProvider.Context, EntityRenderer<? super T>>> renderer) {
-        if (this.renderer == null) { // First call only
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerRenderer);
+        if (this.renderer == null && FMLEnvironment.dist.isClient()) { // First call only
+            RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerRenderer);
         }
         this.renderer = renderer;
         return this;
@@ -172,7 +174,7 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
      *             When called more than once
      */
     @SuppressWarnings("unchecked")
-    public EntityBuilder<T, P> spawnPlacement(SpawnPlacements.Type type, Heightmap.Types heightmap, SpawnPredicate<T> predicate) {
+    public EntityBuilder<T, P> spawnPlacement(SpawnPlacementType type, Heightmap.Types heightmap, SpawnPredicate<T> predicate, SpawnPlacementRegisterEvent.Operation operation) {
         if (spawnConfigured) {
             throw new IllegalStateException("Cannot configure spawn placement more than once");
         }
@@ -187,7 +189,9 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
                 throw new RuntimeException("Failed to type check entity " + t.getRegistryName() + " when registering spawn placement", e);
             }
             */
-            SpawnPlacements.register((EntityType<Mob>) t, type, heightmap, (SpawnPredicate<Mob>) predicate);
+            OneTimeEventReceiver.addModListener(getOwner(), SpawnPlacementRegisterEvent.class, e -> {
+                e.register(t, type, heightmap, predicate, operation);
+            });
         });
         return this;
     }
@@ -228,7 +232,7 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
     public ItemBuilder<? extends SpawnEggItem, EntityBuilder<T, P>> spawnEgg(int primaryColor, int secondaryColor) {
         var sup = asSupplier();
         return getOwner().item(this, getName() + "_spawn_egg", p -> new DeferredSpawnEggItem((Supplier<EntityType<? extends Mob>>) (Supplier) sup, primaryColor, secondaryColor, p)).tab(CreativeModeTabs.SPAWN_EGGS)
-                .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), new ResourceLocation("item/template_spawn_egg")));
+                .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), ResourceLocation.withDefaultNamespace("item/template_spawn_egg")));
     }
 
     /**

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -16,13 +17,44 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;
 import com.tterrag.registrate.builders.client.MenuBuilderClient;
 import lombok.Setter;
+import net.minecraft.Util;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityType.EntityFactory;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.loading.DatagenModLoader;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.fluids.BaseFlowingFluid;
+import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Level;
@@ -1220,20 +1252,20 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
 
     // Enchantment
 
-    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(EnchantmentCategory type, EnchantmentFactory<T> factory) {
-        return enchantment(self(), type, factory);
+    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+        return enchantment(self(), definition, factory);
     }
 
-    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(String name, EnchantmentCategory type, EnchantmentFactory<T> factory) {
-        return enchantment(self(), name, type, factory);
+    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(String name, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+        return enchantment(self(), name, definition, factory);
     }
 
-    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, EnchantmentCategory type, EnchantmentFactory<T> factory) {
-        return enchantment(parent, currentName(), type, factory);
+    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+        return enchantment(parent, currentName(), definition, factory);
     }
 
-    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, String name, EnchantmentCategory type, EnchantmentFactory<T> factory) {
-        return entry(name, callback -> EnchantmentBuilder.create(this, parent, name, callback, type, factory));
+    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, String name, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+        return entry(name, callback -> EnchantmentBuilder.create(this, parent, name, callback, definition, factory));
     }
 
     // Creative Tab
@@ -1267,7 +1299,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     }
 
     public <P> NoConfigBuilder<CreativeModeTab, CreativeModeTab, P> defaultCreativeTab(P parent, String name, Consumer<CreativeModeTab.Builder> config) {
-        this.defaultCreativeModeTab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(this.modid, name));
+        this.defaultCreativeModeTab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(this.modid, name));
         return this.generic(parent, name, Registries.CREATIVE_MODE_TAB, () -> {
             var builder = CreativeModeTab.builder()
                     .icon(() -> getAll(Registries.ITEM).stream().findFirst().map(ItemEntry::cast).map(ItemEntry::asStack).orElse(new ItemStack(Items.AIR)))

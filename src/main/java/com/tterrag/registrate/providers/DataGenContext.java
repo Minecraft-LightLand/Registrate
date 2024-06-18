@@ -40,7 +40,7 @@ public class DataGenContext<R, E extends R> implements NonNullSupplier<E> {
     }
     
     public static <R, E extends R> DataGenContext<R, E> from(Builder<R, E, ?, ?> builder) {
-        return new DataGenContext<R, E>(NonNullSupplier.of(builder.getOwner().<R, E>get(builder.getName(), builder.getRegistryKey())), builder.getName(),
-                new ResourceLocation(builder.getOwner().getModid(), builder.getName()));
+        return new DataGenContext<>(NonNullSupplier.of(builder.getOwner().<R, E>get(builder.getName(), builder.getRegistryKey())), builder.getName(),
+                ResourceLocation.fromNamespaceAndPath(builder.getOwner().getModid(), builder.getName()));
     }
 }

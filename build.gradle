@@ -40,19 +40,25 @@ runs {
         systemProperty 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
         systemProperty 'forge.logging.console.level', 'debug'
 
-        workingDirectory project.file('run')
-
         modSource sourceSets.test
         modSource sourceSets.main
     }
 
-    client {}
-    server {}
+    client {
+        workingDirectory project.file('run')
+    }
+
+    server {
+        workingDirectory project.file('run/server')
+        programArguments '--nogui'
+    }
 
     data {
+        workingDirectory project.file('run')
+        
         environmentVariables 'target', 'fmluserdevdata'
 
-        //programArguments '--mod', 'testmod', '--all', '--output', rootProject.file('src/generated/resources/'), '--existing', rootProject.file('src/test/resources')
+        programArguments.addAll '--mod', 'testmod', '--all', '--output', rootProject.file('src/generated/resources/'), '--existing', rootProject.file('src/test/resources')
     }
 }
 
@@ -77,7 +83,7 @@ dependencies {
 }
 
 lombok {
-    version = "1.18.20"
+    version = "1.18.30"
 }
 
 delombok {

@@ -47,6 +47,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Pig;
@@ -62,9 +63,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.Enchantment.Rarity;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.biome.FixedBiomeSource;
@@ -86,7 +86,7 @@ import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
-import net.minecraft.world.level.storage.loot.functions.LootingEnchantFunction;
+import net.minecraft.world.level.storage.loot.functions.EnchantedCountIncreaseFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
@@ -96,6 +96,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
+import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.RegistryBuilder;
@@ -116,7 +117,7 @@ public class TestMod {
         }
 
         @Override
-        public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+        protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
             if (!worldIn.isClientSide) {
                 player.openMenu(new MenuProvider() {
 
@@ -177,17 +178,18 @@ public class TestMod {
         }
     }
 
-    private static class TestEnchantment extends Enchantment {
-
-        public TestEnchantment(Rarity rarityIn, EnchantmentCategory typeIn, EquipmentSlot... slots) {
-            super(rarityIn, typeIn, slots);
-        }
-
-        @Override
-        public int getMaxLevel() {
-            return 5;
-        }
-    }
+    //fixme enchantments need reworking
+//    private static class TestEnchantment extends Enchantment {
+//
+//        public TestEnchantment(Rarity rarityIn, EnchantmentCategory typeIn, EquipmentSlot... slots) {
+//            super(rarityIn, typeIn, slots);
+//        }
+//
+//        @Override
+//        public int getMaxLevel() {
+//            return 5;
+//        }
+//    }
 
     private static class TestCustomRegistryEntry {}
 
@@ -202,10 +204,10 @@ public class TestMod {
     private final ItemEntry<Item> testitem = registrate.object("testitem")
             .item(Item::new)
                 .onRegister(item -> sawCallback.set(true))
-                .properties(p -> p.food(new FoodProperties.Builder().nutrition(1).saturationMod(0.2f).build()))
+                .properties(p -> p.food(new FoodProperties.Builder().nutrition(1).saturationModifier(0.2f).build()))
                 .color(() -> () -> (stack, index) -> 0xFF0000FF)
                 .tag(ItemTags.BEDS)
-                .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), new ResourceLocation("block/stone")))
+                .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), ResourceLocation.withDefaultNamespace("block/stone")))
                 .tab(testcreativetab.getKey(), (ctx, modifier) -> modifier.accept(ctx))
                 .register();
 
@@ -220,7 +222,7 @@ public class TestMod {
             .block(TestBlock::new)
                 .properties(p -> p.noOcclusion())
                 .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(),
-                                prov.models().withExistingParent(ctx.getName(), new ResourceLocation("block/glass")).renderType(prov.mcLoc("cutout"))))
+                                prov.models().withExistingParent(ctx.getName(), ResourceLocation.withDefaultNamespace("block/glass")).renderType(prov.mcLoc("cutout"))))
                 .transform(TestMod::applyDiamondDrop)
                 .recipe((ctx, prov) -> {
                     ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ctx.getEntry())
@@ -237,7 +239,7 @@ public class TestMod {
                 .color(() -> () -> (state, world, pos, index) -> 0xFFFF0000)
                 .item()
                     .color(() -> () -> (stack, index) -> 0xFFFF0000)
-                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), new ResourceLocation("item/egg")))
+                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), ResourceLocation.withDefaultNamespace("item/egg")))
                     .build()
                 .blockEntity(TestBlockEntity::new)
                     .renderer(() -> TestBlockEntityRenderer::new)
@@ -259,14 +261,14 @@ public class TestMod {
             .entity(TestEntity::new, MobCategory.CREATURE)
             .attributes(Pig::createAttributes)
             .renderer(() -> PigRenderer::new)
-            .spawnPlacement(SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules)
+            .spawnPlacement(SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules, SpawnPlacementRegisterEvent.Operation.OR)
             .defaultSpawnEgg(0xFF0000, 0x00FF00)
             .loot((prov, type) -> prov.add(type, LootTable.lootTable()
                     .withPool(LootPool.lootPool()
                             .setRolls(ConstantValue.exactly(1))
                             .add(LootItem.lootTableItem(Items.DIAMOND)
                                     .apply(SetItemCountFunction.setCount(UniformGenerator.between(1, 3)))
-                                    .apply(LootingEnchantFunction.lootingMultiplier(UniformGenerator.between(0, 2)))))))
+                                    .apply(EnchantedCountIncreaseFunction.lootingMultiplier(prov.getRegistries(), UniformGenerator.between(0, 2)))))))
             .tag(EntityTypeTags.RAIDERS)
             .register();
 
@@ -275,7 +277,7 @@ public class TestMod {
             .register();
 
     private final FluidEntry<BaseFlowingFluid.Flowing> testfluid = registrate.object("testfluid")
-            .fluid(new ResourceLocation("block/water_flow"), new ResourceLocation("block/lava_still"), (props, still, flow) -> new FluidType(props) {
+            .fluid(ResourceLocation.withDefaultNamespace("block/water_flow"), ResourceLocation.withDefaultNamespace("block/lava_still"), (props, still, flow) -> new FluidType(props) {
                 // And now you can do custom behaviours.
                 @Override
                 public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
@@ -304,11 +306,12 @@ public class TestMod {
             .menu((type, windowId, inv) -> new ChestMenu(type, windowId, inv, new SimpleContainer(9 * 9), 9), () -> ContainerScreen::new)
             .register();
 
-    private final RegistryEntry<Enchantment, TestEnchantment> testenchantment = registrate.object("testenchantment")
-            .enchantment(EnchantmentCategory.ARMOR, TestEnchantment::new)
-            .rarity(Rarity.UNCOMMON)
-            .addArmorSlots()
-            .register();
+    //fixme enchantments need reworking
+//    private final RegistryEntry<Enchantment, TestEnchantment> testenchantment = registrate.object("testenchantment")
+//            .enchantment(EnchantmentCategory.ARMOR, TestEnchantment::new)
+//            .rarity(Rarity.UNCOMMON)
+//            .addArmorSlots()
+//            .register();
 
 //    private final RegistryEntry<TestBiome> testbiome = registrate.object("testbiome")
 //            .biome(TestBiome::new)
@@ -381,7 +384,7 @@ public class TestMod {
                 .addCriterion("has_egg", InventoryChangeTrigger.TriggerInstance.hasItems(Items.EGG))
                 .display(Items.EGG,
                         adv.title(registrate.getModid(), "root", "Test Advancement"), adv.desc(registrate.getModid(), "root", "Get an egg."),
-                        new ResourceLocation("textures/gui/advancements/backgrounds/stone.png"), AdvancementType.TASK, true, true, false)
+                        ResourceLocation.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png"), AdvancementType.TASK, true, true, false)
                 .save(adv, registrate.getModid() + ":root");
         });
         registrate.addDataGenerator(ProviderType.GENERIC_SERVER, provider -> provider.add(data -> {
@@ -390,7 +393,7 @@ public class TestMod {
             // /execute as @s in testmod:test_dimension run tp @s 0 64 0
             // you can validate you are in this dimension by checking the debug screen
             // right underneath the `Chunks[C]` and `Chunk[S]` should be the dimension name
-            var testDimensionTypeKey = ResourceKey.create(Registries.DIMENSION_TYPE, new ResourceLocation("testmod", "test_dimension_type"));
+            var testDimensionTypeKey = ResourceKey.create(Registries.DIMENSION_TYPE, ResourceLocation.fromNamespaceAndPath("testmod", "test_dimension_type"));
 
             return new DatapackBuiltinEntriesProvider(
                     data.output(),
@@ -430,7 +433,7 @@ public class TestMod {
                                 var overworldNoiseSettings = context.lookup(Registries.NOISE_SETTINGS).getOrThrow(NoiseGeneratorSettings.OVERWORLD);
 
                                 context.register(
-                                        ResourceKey.create(Registries.LEVEL_STEM, new ResourceLocation("testmod", "test_dimension")),
+                                        ResourceKey.create(Registries.LEVEL_STEM, ResourceLocation.fromNamespaceAndPath("testmod", "test_dimension")),
                                         new LevelStem(
                                                 testDimensionType,
                                                 new NoiseBasedChunkGenerator(

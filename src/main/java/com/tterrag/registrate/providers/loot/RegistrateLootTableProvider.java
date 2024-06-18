@@ -10,19 +10,25 @@ import com.tterrag.registrate.providers.RegistrateProvider;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.WritableRegistry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.loot.LootTableSubProvider;
 import net.minecraft.data.loot.packs.VanillaLootTableProvider;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
+import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,15 +40,15 @@ public class RegistrateLootTableProvider extends LootTableProvider implements Re
         static LootType<RegistrateBlockLootTables> BLOCK = register("block", LootContextParamSets.BLOCK, RegistrateBlockLootTables::new);
         static LootType<RegistrateEntityLootTables> ENTITY = register("entity", LootContextParamSets.ENTITY, RegistrateEntityLootTables::new);
 
-        T getLootCreator(AbstractRegistrate<?> parent, Consumer<T> callback);
+        T getLootCreator(HolderLookup.Provider provider, AbstractRegistrate<?> parent, Consumer<T> callback);
 
         LootContextParamSet getLootSet();
 
-        static <T extends RegistrateLootTables> LootType<T> register(String name, LootContextParamSet set, NonNullBiFunction<AbstractRegistrate, Consumer<T>, T> factory) {
+        static <T extends RegistrateLootTables> LootType<T> register(String name, LootContextParamSet set, TriFunction<HolderLookup.Provider, AbstractRegistrate, Consumer<T>, T> factory) {
             LootType<T> type = new LootType<T>() {
                 @Override
-                public T getLootCreator(AbstractRegistrate<?> parent, Consumer<T> callback) {
-                    return factory.apply(parent, callback);
+                public T getLootCreator(HolderLookup.Provider provider, AbstractRegistrate<?> parent, Consumer<T> callback) {
+                    return factory.apply(provider, parent, callback);
                 }
 
                 @Override
@@ -60,11 +66,11 @@ public class RegistrateLootTableProvider extends LootTableProvider implements Re
     private final AbstractRegistrate<?> parent;
 
     private final Multimap<LootType<?>, Consumer<? super RegistrateLootTables>> specialLootActions = HashMultimap.create();
-    private final Multimap<LootContextParamSet, Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>> lootActions = HashMultimap.create();
+    private final Multimap<LootContextParamSet, Consumer<BiConsumer<ResourceKey<LootTable>, LootTable.Builder>>> lootActions = HashMultimap.create();
     private final Set<RegistrateLootTables> currentLootCreators = new HashSet<>();
 
-    public RegistrateLootTableProvider(AbstractRegistrate<?> parent, PackOutput packOutput) {
-        super(packOutput, Set.of(), VanillaLootTableProvider.create(packOutput).getTables());
+    public RegistrateLootTableProvider(AbstractRegistrate<?> parent, PackOutput packOutput, CompletableFuture<HolderLookup.Provider> provider) {
+        super(packOutput, Set.of(), VanillaLootTableProvider.create(packOutput, provider).getTables(), provider);
         this.parent = parent;
     }
 
@@ -74,8 +80,8 @@ public class RegistrateLootTableProvider extends LootTableProvider implements Re
     }
 
     @Override
-    protected void validate(Map<ResourceLocation, LootTable> map, ValidationContext validationresults) {
-        currentLootCreators.forEach(c -> c.validate(map, validationresults));
+    protected void validate(WritableRegistry<LootTable> writableregistry, ValidationContext validationcontext, ProblemReporter.Collector problemreporter$collector) {
+        currentLootCreators.forEach(c -> c.validate(writableregistry, validationcontext));
     }
 
     @SuppressWarnings("unchecked")
@@ -83,16 +89,14 @@ public class RegistrateLootTableProvider extends LootTableProvider implements Re
         this.specialLootActions.put(type, (Consumer<RegistrateLootTables>) action);
     }
 
-    public void addLootAction(LootContextParamSet set, Consumer<BiConsumer<ResourceLocation, LootTable.Builder>> action) {
+    public void addLootAction(LootContextParamSet set, Consumer<BiConsumer<ResourceKey<LootTable>, LootTable.Builder>> action) {
         this.lootActions.put(set, action);
     }
 
-    private Supplier<LootTableSubProvider> getLootCreator(AbstractRegistrate<?> parent, LootType<?> type) {
-        return () -> {
-            RegistrateLootTables creator = type.getLootCreator(parent, cons -> specialLootActions.get(type).forEach(c -> c.accept(cons)));
-            currentLootCreators.add(creator);
-            return creator;
-        };
+    private LootTableSubProvider getLootCreator(HolderLookup. Provider provider, AbstractRegistrate<?> parent, LootType<?> type) {
+        RegistrateLootTables creator = type.getLootCreator(provider, parent, cons -> specialLootActions.get(type).forEach(c -> c.accept(cons)));
+        currentLootCreators.add(creator);
+        return creator;
     }
 
     private static final BiMap<ResourceLocation, LootContextParamSet> SET_REGISTRY = ObfuscationReflectionHelper.getPrivateValue(LootContextParamSets.class, null, "REGISTRY");
@@ -103,10 +107,10 @@ public class RegistrateLootTableProvider extends LootTableProvider implements Re
         currentLootCreators.clear();
         ImmutableList.Builder<LootTableProvider.SubProviderEntry> builder = ImmutableList.builder();
         for (LootType<?> type : LOOT_TYPES.values()) {
-            builder.add(new SubProviderEntry(getLootCreator(parent, type), type.getLootSet()));
+            builder.add(new SubProviderEntry(provider -> getLootCreator(provider, parent, type), type.getLootSet()));
         }
         for (LootContextParamSet set : SET_REGISTRY.values()) {
-            builder.add(new SubProviderEntry(() -> callback -> lootActions.get(set).forEach(a -> a.accept(callback)), set));
+            builder.add(new SubProviderEntry((provider) -> callback -> lootActions.get(set).forEach(a -> a.accept(callback)), set));
         }
         return builder.build();
     }

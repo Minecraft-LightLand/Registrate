@@ -17,6 +17,7 @@ import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.providers.RegistrateTagsProvider;
 import com.tterrag.registrate.util.OneTimeEventReceiver;
+import com.tterrag.registrate.util.RegistrateDistExecutor;
 import com.tterrag.registrate.util.entry.FluidEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
@@ -41,7 +42,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.DistExecutor;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.common.util.Lazy;
@@ -343,7 +343,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
 
     @SuppressWarnings("deprecation")
     public FluidBuilder<T, P> renderType(Supplier<RenderType> layer) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+        RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()), "Invalid render type: " + layer);
         });
 
@@ -356,7 +356,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
 
     @SuppressWarnings("deprecation")
     protected void registerRenderType(T entry) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+        RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
                 if (this.layer != null) {
                     RenderType layer = this.layer.get();
@@ -430,7 +430,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
      *            A factory for the block, which accepts the block object and properties and returns a new block
      * @return the {@link BlockBuilder} for the {@link LiquidBlock}
      */
-    public <B extends LiquidBlock> BlockBuilder<B, FluidBuilder<T, P>> block(NonNullBiFunction<NonNullSupplier<? extends T>, BlockBehaviour.Properties, ? extends B> factory) {
+    public <B extends LiquidBlock> BlockBuilder<B, FluidBuilder<T, P>> block(NonNullBiFunction<T, BlockBehaviour.Properties, ? extends B> factory) {
         if (this.defaultBlock == Boolean.FALSE) {
             throw new IllegalStateException("Only one call to block/noBlock per builder allowed");
         }
@@ -438,7 +438,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         final NonNullSupplier<T> supplier = asSupplier();
         final var lightLevel = Lazy.of(() -> fluidType.get().getLightLevel());
         final ToIntFunction<BlockState> lightLevelInt = $ -> lightLevel.get();
-        return getOwner().<B, FluidBuilder<T, P>>block(this, sourceName, p -> factory.apply(supplier, p))
+        return getOwner().<B, FluidBuilder<T, P>>block(this, sourceName, p -> factory.apply(supplier.get(), p))
             .properties(p -> BlockBehaviour.Properties.ofFullCopy(Blocks.WATER).noLootTable())
             .properties(p -> p.lightLevel(lightLevelInt))
             .blockstate((ctx, prov) -> prov.simpleBlock(ctx.getEntry(), prov.models().getBuilder(sourceName)
@@ -488,7 +488,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
      *            A factory for the bucket item, which accepts the fluid object supplier and properties and returns a new item
      * @return the {@link ItemBuilder} for the {@link BucketItem}
      */
-    public <I extends BucketItem> ItemBuilder<I, FluidBuilder<T, P>> bucket(NonNullBiFunction<Supplier<? extends BaseFlowingFluid>, Item.Properties, ? extends I> factory) {
+    public <I extends BucketItem> ItemBuilder<I, FluidBuilder<T, P>> bucket(NonNullBiFunction<BaseFlowingFluid, Item.Properties, ? extends I> factory) {
         if (this.defaultBucket == Boolean.FALSE) {
             throw new IllegalStateException("Only one call to bucket/noBucket per builder allowed");
         }
@@ -498,9 +498,9 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         if (source == null) {
             throw new IllegalStateException("Cannot create a bucket before creating a source block");
         }
-        return getOwner().<I, FluidBuilder<T, P>>item(this, bucketName, p -> factory.apply(source::get, p))
+        return getOwner().<I, FluidBuilder<T, P>>item(this, bucketName, p -> factory.apply(get().get(), p))
             .properties(p -> p.craftRemainder(Items.BUCKET).stacksTo(1))
-            .model((ctx, prov) -> prov.generated(ctx::getEntry, new ResourceLocation(getOwner().getModid(), "item/" + bucketName)));
+            .model((ctx, prov) -> prov.generated(ctx::getEntry, ResourceLocation.fromNamespaceAndPath(getOwner().getModid(), "item/" + bucketName)));
     }
 
     @Beta
@@ -570,7 +570,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
             properties.descriptionId(block.get().get().getDescriptionId());
             setData(ProviderType.LANG, NonNullBiConsumer.noop());
         } else {
-            properties.descriptionId(Util.makeDescriptionId("fluid", new ResourceLocation(getOwner().getModid(), sourceName)));
+            properties.descriptionId(Util.makeDescriptionId("fluid", ResourceLocation.fromNamespaceAndPath(getOwner().getModid(), sourceName)));
         }
 
         return properties;

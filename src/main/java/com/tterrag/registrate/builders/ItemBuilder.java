@@ -15,6 +15,7 @@ import com.tterrag.registrate.providers.RegistrateLangProvider;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.CreativeModeTabModifier;
 import com.tterrag.registrate.util.OneTimeEventReceiver;
+import com.tterrag.registrate.util.RegistrateDistExecutor;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
@@ -29,7 +30,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.DistExecutor;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -198,7 +198,7 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
      */
     public ItemBuilder<T, P> color(NonNullSupplier<Supplier<ItemColor>> colorHandler) {
         if (this.colorHandler == null) {
-            DistExecutor.runWhenOn(Dist.CLIENT, () -> this::registerItemColor);
+            RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerItemColor);
         }
         this.colorHandler = colorHandler;
         return this;

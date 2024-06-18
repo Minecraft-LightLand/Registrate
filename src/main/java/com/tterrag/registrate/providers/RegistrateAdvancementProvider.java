@@ -47,11 +47,11 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
     }
 
     public MutableComponent title(String category, String name, String title) {
-        return owner.addLang("advancements", new ResourceLocation(category, name), "title", title);
+        return owner.addLang("advancements", ResourceLocation.fromNamespaceAndPath(category, name), "title", title);
     }
 
     public MutableComponent desc(String category, String name, String desc) {
-        return owner.addLang("advancements", new ResourceLocation(category, name), "description", desc);
+        return owner.addLang("advancements", ResourceLocation.fromNamespaceAndPath(category, name), "description", desc);
     }
 
     private @Nullable CachedOutput cache;
@@ -76,18 +76,19 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
 
     @Override
     public void accept(@Nullable AdvancementHolder holder) {
-        CachedOutput cache = this.cache;
-        if (cache == null) {
-            throw new IllegalStateException("Cannot accept advancements outside of act");
-        }
-        Objects.requireNonNull(holder, "Cannot accept a null advancement");
-        Path path = this.packOutput.getOutputFolder();
-        if (!seenAdvancements.add(holder.id())) {
-            throw new IllegalStateException("Duplicate advancement " + holder.id());
-        } else {
-            Path path1 = getPath(path, holder);
-            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CODEC, holder.value(), path1));
-        }
+        this.registriesLookup.thenAccept((lookup) -> {
+            CachedOutput cache = this.cache;
+            if (cache == null) {
+                throw new IllegalStateException("Cannot accept advancements outside of act");
+            }
+            Objects.requireNonNull(holder, "Cannot accept a null advancement");
+            Path path = this.packOutput.getOutputFolder();
+            if (!seenAdvancements.add(holder.id())) {
+                throw new IllegalStateException("Duplicate advancement " + holder.id());
+            } else {
+                advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CODEC, holder.value(), getPath(path, holder)));
+            }
+        });
     }
 
     private static Path getPath(Path pathIn, AdvancementHolder advancementIn) {

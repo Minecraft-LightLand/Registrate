@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import com.tterrag.registrate.AbstractRegistrate;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +34,7 @@ public class MenuEntry<T extends AbstractContainerMenu> extends RegistryEntry<Me
         open(player, displayName, asProvider());
     }
 
-    public void open(ServerPlayer player, Component displayName, Consumer<FriendlyByteBuf> extraData) {
+    public void open(ServerPlayer player, Component displayName, Consumer<RegistryFriendlyByteBuf> extraData) {
         open(player, displayName, asProvider(), extraData);
     }
 
@@ -41,7 +42,7 @@ public class MenuEntry<T extends AbstractContainerMenu> extends RegistryEntry<Me
         player.openMenu(new SimpleMenuProvider(provider, displayName));
     }
 
-    public void open(ServerPlayer player, Component displayName, MenuConstructor provider, Consumer<FriendlyByteBuf> extraData) {
+    public void open(ServerPlayer player, Component displayName, MenuConstructor provider, Consumer<RegistryFriendlyByteBuf> extraData) {
         player.openMenu(new SimpleMenuProvider(provider, displayName), extraData);
     }
 }
