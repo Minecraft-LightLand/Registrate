@@ -130,7 +130,7 @@ publishing {
         def mavenToken = System.getenv("MAVEN_TOKEN")
         if (mavenToken != null) {
             maven {
-                url = "https://maven.ithundxr.dev/hidden"
+                url = "https://maven.ithundxr.dev/snapshots"
                 credentials {
                     username = "registrate-fork-github"
                     password = mavenToken
