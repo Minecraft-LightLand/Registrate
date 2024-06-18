@@ -95,10 +95,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 
 @Mod("testmod")
@@ -198,6 +200,9 @@ public class TestMod {
     private final RegistryEntry<CreativeModeTab, CreativeModeTab> testcreativetab = registrate.object("test_creative_mode_tab")
             .defaultCreativeTab(tab -> tab.withLabelColor(0xFF00AA00))
             .register();
+
+    private final RegistryEntry<IngredientType<?>, IngredientType<DataIngredient>> ingredienttype = registrate.object("data_ingredient")
+            .simple(NeoForgeRegistries.Keys.INGREDIENT_TYPES, () -> DataIngredient.TYPE);
 
     private final AtomicBoolean sawCallback = new AtomicBoolean();
 
