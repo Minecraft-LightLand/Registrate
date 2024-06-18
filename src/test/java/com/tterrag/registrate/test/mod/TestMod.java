@@ -191,8 +191,7 @@ public class TestMod {
 
     private static class TestCustomRegistryEntry {}
 
-    private final Registrate registrate = Registrate
-            .create("testmod");
+    private final Registrate registrate = Registrate.create("testmod");
 
     private final RegistryEntry<CreativeModeTab, CreativeModeTab> testcreativetab = registrate.object("test_creative_mode_tab")
             .defaultCreativeTab(tab -> tab.withLabelColor(0xFF00AA00))
@@ -200,7 +199,7 @@ public class TestMod {
 
     private final AtomicBoolean sawCallback = new AtomicBoolean();
 
-    private final RegistryEntry<Item, Item> testitem = registrate.object("testitem")
+    private final ItemEntry<Item> testitem = registrate.object("testitem")
             .item(Item::new)
                 .onRegister(item -> sawCallback.set(true))
                 .properties(p -> p.food(new FoodProperties.Builder().nutrition(1).saturationMod(0.2f).build()))
@@ -228,7 +227,7 @@ public class TestMod {
                             .pattern("DDD").pattern("DED").pattern("DDD")
                             .define('D', Items.DIAMOND)
                             .define('E', Items.EGG)
-                            .unlockedBy("has_egg", RegistrateRecipeProvider.has(Items.EGG))
+                            .unlockedBy("has_egg", prov.has(Items.EGG))
                             .save(prov);
 
                     prov.food(DataIngredient.items(ctx), RecipeCategory.MISC, () -> Blocks.DIAMOND_BLOCK, 1f);
@@ -252,11 +251,11 @@ public class TestMod {
             .simpleItem()
             .register();
 
-    private final ItemEntry<BlockItem> testblockitem = (ItemEntry<BlockItem>) testblock.<Item, BlockItem>getSibling(BuiltInRegistries.ITEM);
-    private final BlockEntityEntry<ChestBlockEntity> testblockbe = BlockEntityEntry.cast(testblock.getSibling(BuiltInRegistries.BLOCK_ENTITY_TYPE));
+    private final ItemEntry<BlockItem> testblockitem = (ItemEntry<BlockItem>) testblock.<Item, BlockItem>getSibling(Registries.ITEM);
+    private final BlockEntityEntry<ChestBlockEntity> testblockbe = BlockEntityEntry.cast(testblock.getSibling(Registries.BLOCK_ENTITY_TYPE));
 
     @SuppressWarnings("deprecation")
-    private final RegistryEntry<EntityType<?>, EntityType<TestEntity>> testentity = registrate.object("testentity")
+    private final EntityEntry<TestEntity> testentity = registrate.object("testentity")
             .entity(TestEntity::new, MobCategory.CREATURE)
             .attributes(Pig::createAttributes)
             .renderer(() -> PigRenderer::new)
@@ -301,7 +300,7 @@ public class TestMod {
 //                .build()
             .register();
 
-    private final RegistryEntry<MenuType<?>, MenuType<ChestMenu>> testmenu = registrate.object("testmenu")
+    private final MenuEntry<ChestMenu> testmenu = registrate.object("testmenu")
             .menu((type, windowId, inv) -> new ChestMenu(type, windowId, inv, new SimpleContainer(9 * 9), 9), () -> ContainerScreen::new)
             .register();
 
@@ -444,6 +443,8 @@ public class TestMod {
                     Set.of("testmod")
             );
         }));
+
+        registrate.registerEventListeners(eventBus);
 
         eventBus.addListener(this::onCommonSetup);
     }

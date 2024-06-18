@@ -21,8 +21,8 @@ public class RegistryEntry<R, S extends R> extends DeferredHolder<R, S> implemen
     private final AbstractRegistrate<?> owner;
 
     @SuppressWarnings("unused")
-    public RegistryEntry(AbstractRegistrate<?> owner, ResourceKey<R> key) {
-        super(key);
+    public RegistryEntry(AbstractRegistrate<?> owner, DeferredHolder<R, S> key) {
+        super(key.getKey());
 
         if (owner == null)
             throw new NullPointerException("Owner must not be null");

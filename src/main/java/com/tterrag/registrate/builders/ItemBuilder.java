@@ -288,7 +288,7 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
 
     @Override
     protected RegistryEntry<Item, T> createEntryWrapper(DeferredHolder<Item, T> delegate) {
-        return new ItemEntry<>(getOwner(), delegate.getKey());
+        return new ItemEntry<>(getOwner(), delegate);
     }
 
     @Override

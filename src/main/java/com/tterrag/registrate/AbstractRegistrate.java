@@ -8,10 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -20,16 +18,11 @@ import javax.annotation.Nullable;
 
 import com.mojang.serialization.Codec;
 import com.tterrag.registrate.builders.client.MenuBuilderClient;
-import net.minecraft.client.multiplayer.ClientPacketListener;
+import lombok.Setter;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.data.event.GatherDataEvent;
-import net.neoforged.neoforge.data.loading.DatagenModLoader;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.fluids.BaseFlowingFluid;
-import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Level;
@@ -40,8 +33,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
 import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.builders.BlockEntityBuilder;
 import com.tterrag.registrate.builders.BlockEntityBuilder.BlockEntityFactory;
@@ -77,29 +68,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.Util;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType.EntityFactory;
-import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 
 /**
  * Manages all registrations and data generators for a mod.
@@ -159,7 +127,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
 
     /**
      * Checks if Minecraft is running from a dev environment. Enables certain debug logging.
-     * 
+     *
      * @return {@code true} when in a dev environment (specifically, {@link FMLLoader#isProduction()} == false)
      */
     public static boolean isDevEnvironment() {
@@ -181,10 +149,17 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     private final NonNullSupplier<Boolean> doDatagen = NonNullSupplier.lazy(DatagenModLoader::isRunningDataGen);
 
     /**
-     * @return The mod ID that this {@link AbstractRegistrate} is creating objects for
+     * The mod ID that this {@link AbstractRegistrate} is creating objects for
      */
     @Getter
     private final String modid;
+
+    /**
+     * Get the mod event bus that event listeners will be registered to. Useful when Registrate is used in mods that use alternative language loaders, such as forgelin.
+     */
+    @Getter @Setter
+    @Nullable
+    private IEventBus modEventBus;
 
     @Nullable
     private String currentName;
@@ -202,7 +177,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
 
     /**
      * Use this in custom implementations to hide unsafe casts to {@link S} when returning self.
-     * 
+     *
      * @return This {@link AbstractRegistrate} object, cast to {@link S}
      */
     @SuppressWarnings("unchecked")
@@ -211,27 +186,19 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     }
 
     /**
-     * Get the mod event bus that event listeners will be registered to. Useful when Registrate is used in mods that use alternative language loaders, such as forgelin. Defaults to the event bus in
-     * {@link FMLJavaModLoadingContext}.
-     * 
-     * @return An {@link IEventBus} to use
-     */
-    public IEventBus getModEventBus() {
-        
-        
-        return FMLJavaModLoadingContext.get().getModEventBus();
-    }
-
-    /**
      * Called during {@link Registrate#create(String) creation} to initialize event listeners. Custom implementations may add their own event listeners by overriding this.
      * <p>
      * <i>Always</i> call {@code super} in your override unless you know what you are doing!
-     * 
+     *
      * @param bus
      *            The event bus
      * @return This {@link AbstractRegistrate} object
      */
-    protected S registerEventListeners(IEventBus bus) {
+    public S registerEventListeners(IEventBus bus) {
+        if (this.modEventBus == null) {
+            this.modEventBus = bus;
+        }
+
         Consumer<RegisterEvent> onRegister = this::onRegister;
         Consumer<RegisterEvent> onRegisterLate = this::onRegisterLate;
         bus.addListener(onRegister);

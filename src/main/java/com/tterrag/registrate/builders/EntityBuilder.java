@@ -288,7 +288,7 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
 
     @Override
     protected RegistryEntry<EntityType<?>, EntityType<T>> createEntryWrapper(DeferredHolder<EntityType<?>, EntityType<T>> delegate) {
-        return new EntityEntry<>(getOwner(), delegate.getKey());
+        return new EntityEntry<>(getOwner(), delegate);
     }
 
     @Override

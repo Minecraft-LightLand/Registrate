@@ -75,18 +75,18 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
     }
 
     @Override
-    public void accept(@Nullable AdvancementHolder t) {
+    public void accept(@Nullable AdvancementHolder holder) {
         CachedOutput cache = this.cache;
         if (cache == null) {
             throw new IllegalStateException("Cannot accept advancements outside of act");
         }
-        Objects.requireNonNull(t, "Cannot accept a null advancement");
+        Objects.requireNonNull(holder, "Cannot accept a null advancement");
         Path path = this.packOutput.getOutputFolder();
-        if (!seenAdvancements.add(t.id())) {
-            throw new IllegalStateException("Duplicate advancement " + t.id());
+        if (!seenAdvancements.add(holder.id())) {
+            throw new IllegalStateException("Duplicate advancement " + holder.id());
         } else {
-            Path path1 = getPath(path, t);
-            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CODEC, t.value(), path1));
+            Path path1 = getPath(path, holder);
+            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CODEC, holder.value(), path1));
         }
     }
 
