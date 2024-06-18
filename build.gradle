@@ -40,8 +40,8 @@ runs {
         systemProperty 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
         systemProperty 'forge.logging.console.level', 'debug'
 
-        modSource sourceSets.test
-        modSource sourceSets.main
+        modSource project.sourceSets.test
+        modSource project.sourceSets.main
     }
 
     client {
@@ -55,10 +55,8 @@ runs {
 
     data {
         workingDirectory project.file('run')
-        
-        environmentVariables 'target', 'fmluserdevdata'
 
-        programArguments.addAll '--mod', 'testmod', '--all', '--output', rootProject.file('src/generated/resources/'), '--existing', rootProject.file('src/test/resources')
+        programArguments.addAll '--mod', 'testmod', '--all', '--output', rootProject.file('src/generated/resources/').getAbsolutePath(), '--existing', rootProject.file('src/test/resources').getAbsolutePath()
     }
 }
 
