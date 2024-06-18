@@ -281,6 +281,7 @@ public class TestMod {
             .blockEntity(TestDummyBlockEntity::new)
             .register();
 
+    @SuppressWarnings("Convert2MethodRef")
     private final FluidEntry<BaseFlowingFluid.Flowing> testfluid = registrate.object("testfluid")
             .fluid(ResourceLocation.withDefaultNamespace("block/water_flow"), ResourceLocation.withDefaultNamespace("block/lava_still"), (props, still, flow) -> new FluidType(props) {
                 // And now you can do custom behaviours.
@@ -300,7 +301,7 @@ public class TestMod {
                 }
             })
             .properties(p -> p.lightLevel(15).canConvertToSource(true))
-            .renderType(RenderType::translucent)
+            .renderType(() -> RenderType.translucent())
             .noBucket()
 //            .bucket()
 //                .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), prov.mcLoc("item/water_bucket")))
