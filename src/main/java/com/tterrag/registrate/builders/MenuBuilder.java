@@ -3,13 +3,13 @@ package com.tterrag.registrate.builders;
 import javax.annotation.Nullable;
 
 import com.tterrag.registrate.AbstractRegistrate;
-import com.tterrag.registrate.builders.client.MenuBuilderClient;
+import com.tterrag.registrate.util.OneTimeEventReceiver;
+import com.tterrag.registrate.util.RegistrateDistExecutor;
 import com.tterrag.registrate.util.entry.MenuEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
 import com.tterrag.registrate.util.nullness.NonnullType;
 
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.core.registries.Registries;
@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -57,7 +58,12 @@ public class MenuBuilder<T extends AbstractContainerMenu, S extends Screen & Men
         ForgeMenuFactory<T> factory = this.factory;
         final var supplier = this.asSupplier();
         MenuType<T> ret = IMenuTypeExtension.create((windowId, inv, buf) -> factory.create(supplier.get(), windowId, inv, buf));
-        MenuBuilderClient.register(screenFactory, ret);
+        RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+            ScreenFactory<T, S> screenFactory = this.screenFactory.get();
+            OneTimeEventReceiver.addModListener(this.getOwner(), RegisterMenuScreensEvent.class, event -> {
+                event.register(ret, screenFactory::create);
+            });
+        });
         return ret;
     }
 

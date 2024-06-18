@@ -256,7 +256,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
 
     private NonNullConsumer<BaseFlowingFluid.Properties> fluidProperties;
 
-    private @Nullable Supplier<RenderType> layer = null;
+    private @Nullable Supplier<Supplier<RenderType>> layer = null;
 
     private boolean registerType;
 
@@ -341,10 +341,12 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         return lang(f -> f.getFluidType().getDescriptionId(), name);
     }
 
+    
+    
     @SuppressWarnings("deprecation")
-    public FluidBuilder<T, P> renderType(Supplier<RenderType> layer) {
+    public FluidBuilder<T, P> renderType(Supplier<Supplier<RenderType>> layer) {
         RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get()), "Invalid render type: " + layer);
+            Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid render type: " + layer);
         });
 
         if (this.layer == null) {
@@ -359,7 +361,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
                 if (this.layer != null) {
-                    RenderType layer = this.layer.get();
+                    RenderType layer = this.layer.get().get();
                     ItemBlockRenderTypes.setRenderLayer(entry, layer);
                     ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
                 }

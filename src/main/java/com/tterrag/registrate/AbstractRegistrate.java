@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;
-import com.tterrag.registrate.builders.client.MenuBuilderClient;
 import lombok.Setter;
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
@@ -33,7 +32,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityType.EntityFactory;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -236,7 +234,6 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
         bus.addListener(onRegister);
         bus.addListener(EventPriority.LOWEST, onRegisterLate);
         bus.addListener(this::onBuildCreativeModeTabContents); // Fired multiple times when ever tabs need contents rebuilt (changing op tab perms for example)
-        bus.addListener(MenuBuilderClient::onRegisterMenuScreens);
         
         // Register events fire multiple times, so clean them up on common setup
         OneTimeEventReceiver.addModListener(this, FMLCommonSetupEvent.class, $ -> {

@@ -301,7 +301,7 @@ public class TestMod {
                 }
             })
             .properties(p -> p.lightLevel(15).canConvertToSource(true))
-            .renderType(() -> RenderType.translucent())
+            .renderType(() -> RenderType::translucent)
             .noBucket()
 //            .bucket()
 //                .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), prov.mcLoc("item/water_bucket")))
