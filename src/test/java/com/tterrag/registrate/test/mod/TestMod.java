@@ -453,8 +453,6 @@ public class TestMod {
             );
         }));
 
-        registrate.registerEventListeners(eventBus);
-
         eventBus.addListener(this::onCommonSetup);
     }
 
