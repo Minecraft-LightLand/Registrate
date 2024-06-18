@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.mojang.serialization.Codec;
+import lombok.Setter;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
@@ -159,7 +160,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
 
     /**
      * Checks if Minecraft is running from a dev environment. Enables certain debug logging.
-     * 
+     *
      * @return {@code true} when in a dev environment (specifically, {@link FMLEnvironment#naming} == "mcp")
      */
     public static boolean isDevEnvironment() {
@@ -181,10 +182,17 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     private final NonNullSupplier<Boolean> doDatagen = NonNullSupplier.lazy(DatagenModLoader::isRunningDataGen);
 
     /**
-     * @return The mod ID that this {@link AbstractRegistrate} is creating objects for
+     * The mod ID that this {@link AbstractRegistrate} is creating objects for
      */
     @Getter
     private final String modid;
+
+    /**
+     * Get the mod event bus that event listeners will be registered to. Useful when Registrate is used in mods that use alternative language loaders, such as forgelin.
+     */
+    @Getter @Setter
+    @Nullable
+    private IEventBus modEventBus;
 
     @Nullable
     private String currentName;
@@ -202,7 +210,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
 
     /**
      * Use this in custom implementations to hide unsafe casts to {@link S} when returning self.
-     * 
+     *
      * @return This {@link AbstractRegistrate} object, cast to {@link S}
      */
     @SuppressWarnings("unchecked")
@@ -211,25 +219,19 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     }
 
     /**
-     * Get the mod event bus that event listeners will be registered to. Useful when Registrate is used in mods that use alternative language loaders, such as forgelin. Defaults to the event bus in
-     * {@link FMLJavaModLoadingContext}.
-     * 
-     * @return An {@link IEventBus} to use
-     */
-    public IEventBus getModEventBus() {
-        return FMLJavaModLoadingContext.get().getModEventBus();
-    }
-
-    /**
      * Called during {@link Registrate#create(String) creation} to initialize event listeners. Custom implementations may add their own event listeners by overriding this.
      * <p>
      * <i>Always</i> call {@code super} in your override unless you know what you are doing!
-     * 
+     *
      * @param bus
      *            The event bus
      * @return This {@link AbstractRegistrate} object
      */
-    protected S registerEventListeners(IEventBus bus) {
+    public S registerEventListeners(IEventBus bus) {
+        if (this.modEventBus == null) {
+            this.modEventBus = bus;
+        }
+
         Consumer<RegisterEvent> onRegister = this::onRegister;
         Consumer<RegisterEvent> onRegisterLate = this::onRegisterLate;
         bus.addListener(onRegister);

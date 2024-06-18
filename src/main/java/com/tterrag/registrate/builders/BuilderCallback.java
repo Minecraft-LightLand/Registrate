@@ -37,7 +37,7 @@ public interface BuilderCallback {
     <R, T extends R> RegistryEntry<R, T> accept(String name, ResourceKey<? extends Registry<R>> type, Builder<R, T, ?, ?> builder, NonNullSupplier<? extends T> factory, NonNullFunction<DeferredHolder<R, T>, ? extends RegistryEntry<R, T>> entryFactory);
 
     /**
-     * Accept a built entry, to later be constructed and registered. Uses the default {@link RegistryEntry#RegistryEntry(AbstractRegistrate, ResourceKey) RegistryEntry factory}.
+     * Accept a built entry, to later be constructed and registered. Uses the default {@link RegistryEntry#RegistryEntry(AbstractRegistrate, DeferredHolder) RegistryEntry factory}.
      * 
      * @param <R>
      *            The registry type to which the entry will be registered
@@ -54,6 +54,6 @@ public interface BuilderCallback {
      * @return A {@link RegistryEntry} that will supply the registered entry
      */
     default <R, T extends R> RegistryEntry<R, T> accept(String name, ResourceKey<? extends Registry<R>> type, Builder<R, T, ?, ?> builder, NonNullSupplier<? extends T> factory) {
-        return accept(name, type, builder, factory, delegate -> new RegistryEntry<>(builder.getOwner(), delegate.getKey()));
+        return accept(name, type, builder, factory, delegate -> new RegistryEntry<>(builder.getOwner(), delegate));
     }
 }

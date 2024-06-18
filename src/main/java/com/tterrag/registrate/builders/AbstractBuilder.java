@@ -53,7 +53,7 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     @Getter(AccessLevel.PROTECTED)
     private final BuilderCallback callback;
     @Getter(onMethod_ = {@Override})
-    private final ResourceKey<Registry<R>> registryKey;
+    private final ResourceKey<? extends Registry<R>> registryKey;
 
     private final Multimap<ProviderType<? extends RegistrateTagsProvider<?>>, TagKey<?>> tagsByType = HashMultimap.create();
 
@@ -74,7 +74,7 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     }
 
     protected RegistryEntry<R, T> createEntryWrapper(DeferredHolder<R, T> delegate) {
-        return new RegistryEntry<>(getOwner(), delegate.getKey());
+        return new RegistryEntry<>(getOwner(), delegate);
     }
 
     @Override

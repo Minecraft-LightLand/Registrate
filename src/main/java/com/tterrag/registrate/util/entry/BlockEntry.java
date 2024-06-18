@@ -2,14 +2,14 @@ package com.tterrag.registrate.util.entry;
 
 import com.tterrag.registrate.AbstractRegistrate;
 
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class BlockEntry<T extends Block> extends ItemProviderEntry<Block, T> {
 
-    public BlockEntry(AbstractRegistrate<?> owner, ResourceKey<Block> key) {
-        super(owner, key);
+    public BlockEntry(AbstractRegistrate<?> owner, DeferredHolder<Block, T> delegate) {
+        super(owner, delegate);
     }
 
     public BlockState getDefaultState() {

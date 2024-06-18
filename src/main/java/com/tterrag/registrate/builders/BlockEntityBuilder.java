@@ -136,13 +136,13 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
     protected BlockEntityType<T> createEntry() {
         BlockEntityFactory<T> factory = this.factory;
         final var supplier = asSupplier();
-        return BlockEntityType.Builder.<T>of((pos, state) -> factory.create((BlockEntityType<T>) supplier.get(), pos, state), validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new))
+        return BlockEntityType.Builder.of((pos, state) -> factory.create(supplier.get(), pos, state), validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new))
                 .build(null);
     }
 
     @Override
     protected RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> createEntryWrapper(DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> delegate) {
-        return new BlockEntityEntry<>(getOwner(), delegate.getKey());
+        return new BlockEntityEntry<>(getOwner(), delegate);
     }
 
     @Override

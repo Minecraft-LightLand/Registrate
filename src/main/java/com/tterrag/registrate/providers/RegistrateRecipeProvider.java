@@ -77,8 +77,8 @@ public class RegistrateRecipeProvider extends RecipeProvider implements Registra
     }
 
     @Override
-    protected void buildRecipes(RecipeOutput consumer) {
-        this.callback = consumer;
+    protected void buildRecipes(RecipeOutput recipeOutput) {
+        this.callback = recipeOutput;
         owner.genData(ProviderType.RECIPE, this);
         this.callback = null;
     }

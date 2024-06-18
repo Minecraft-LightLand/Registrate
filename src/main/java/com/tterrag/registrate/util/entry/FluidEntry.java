@@ -13,13 +13,14 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class FluidEntry<T extends BaseFlowingFluid> extends RegistryEntry<Fluid, T> {
 
     private final @Nullable BlockEntry<? extends Block> block;
 
-    public FluidEntry(AbstractRegistrate<?> owner, ResourceKey<Fluid> key) {
-        super(owner, key);
+    public FluidEntry(AbstractRegistrate<?> owner, DeferredHolder<Fluid, T> delegate) {
+        super(owner, delegate);
         BlockEntry<? extends Block> block = null;
         try {
             block = BlockEntry.cast(getSibling(BuiltInRegistries.BLOCK));

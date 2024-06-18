@@ -8,6 +8,7 @@ import com.tterrag.registrate.AbstractRegistrate;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.providers.RegistrateProvider;
 import com.tterrag.registrate.util.nullness.NonNullBiFunction;
+import com.tterrag.registrate.util.nullness.NonNullConsumer;
 
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
-import net.neoforged.neoforge.common.util.NonNullConsumer;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -80,7 +80,7 @@ public class RegistrateLootTableProvider extends LootTableProvider implements Re
 
     @SuppressWarnings("unchecked")
     public <T extends RegistrateLootTables> void addLootAction(LootType<T> type, NonNullConsumer<T> action) {
-        this.specialLootActions.put(type, (Consumer<? super RegistrateLootTables>) action);
+        this.specialLootActions.put(type, (Consumer<RegistrateLootTables>) action);
     }
 
     public void addLootAction(LootContextParamSet set, Consumer<BiConsumer<ResourceLocation, LootTable.Builder>> action) {
