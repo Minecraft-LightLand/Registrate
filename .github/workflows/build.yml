@@ -1,6 +1,6 @@
 name: Build
 
-on: [workflow_dispatch, push]
+on: [workflow_dispatch, push, pull_request]
 
 jobs:
   build:
@@ -11,6 +11,14 @@ jobs:
 
       - name: Setup Java
         run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+
+      - name: NeoGradle Cache
+        uses: actions/cache@v4
+        if: ${{ !endsWith(github.ref, '/dev') }}
+        with:
+          path: "**/.gradle/repositories/"
+          key: "${{ runner.os }}-gradle-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}"
+          restore-keys: "${{ runner.os }}-gradle-"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -24,4 +32,4 @@ jobs:
       - name: Build & Publish to Maven
         env:
           MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
-        run: ./gradlew publish
+        run: ./gradlew build publish
