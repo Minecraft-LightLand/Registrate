@@ -53,21 +53,21 @@ public final class DataIngredient extends Ingredient {
     private final Function<RegistrateRecipeProvider, Criterion<InventoryChangeTrigger.TriggerInstance>> criteriaFactory;
 
     private DataIngredient(Ingredient parent, ItemLike item) {
-        super(Stream.empty());
+        super(Stream.of(parent.getValues()));
         this.parent = parent;
         this.id = BuiltInRegistries.ITEM.getKey(item.asItem());
         this.criteriaFactory = prov -> RegistrateRecipeProvider.has(item);
     }
     
     private DataIngredient(Ingredient parent, TagKey<Item> tag) {
-        super(Stream.empty());
+        super(Stream.of(parent.getValues()));
         this.parent = parent;
         this.id = tag.location();
         this.criteriaFactory = prov -> RegistrateRecipeProvider.has(tag);
     }
     
     private DataIngredient(Ingredient parent, ResourceLocation id, ItemPredicate... predicates) {
-        super(Stream.empty());
+        super(Stream.of(parent.getValues()));
         this.parent = parent;
         this.id = id;
         this.criteriaFactory = prov -> RegistrateRecipeProvider.inventoryTrigger(predicates);
