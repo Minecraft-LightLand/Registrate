@@ -67,7 +67,6 @@ public final class DataIngredient implements ICustomIngredient {
     private final ItemPredicate[] predicates;
     
     private DataIngredient(Ingredient parent, ItemLike item) {
-        super(Stream.of(parent.getValues()));
         this.parent = parent;
         this.id = BuiltInRegistries.ITEM.getKey(item.asItem());
         this.criteriaFactory = prov -> RegistrateRecipeProvider.has(item);
@@ -75,7 +74,6 @@ public final class DataIngredient implements ICustomIngredient {
     }
     
     private DataIngredient(Ingredient parent, TagKey<Item> tag) {
-        super(Stream.of(parent.getValues()));
         this.parent = parent;
         this.id = tag.location();
         this.criteriaFactory = prov -> RegistrateRecipeProvider.has(tag);
@@ -83,7 +81,6 @@ public final class DataIngredient implements ICustomIngredient {
     }
     
     private DataIngredient(Ingredient parent, ResourceLocation id, ItemPredicate... predicates) {
-        super(Stream.of(parent.getValues()));
         this.parent = parent;
         this.id = id;
         this.criteriaFactory = prov -> RegistrateRecipeProvider.inventoryTrigger(predicates);
