@@ -15,6 +15,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.WithConditions;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
@@ -76,6 +78,10 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
 
     @Override
     public void accept(@Nullable AdvancementHolder holder) {
+        withConditions(holder);
+    }
+
+    public void withConditions(@Nullable AdvancementHolder holder, ICondition... conditions) {
         this.registriesLookup.thenAccept((lookup) -> {
             CachedOutput cache = this.cache;
             if (cache == null) {
@@ -85,8 +91,12 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
             Path path = this.packOutput.getOutputFolder();
             if (!seenAdvancements.add(holder.id())) {
                 throw new IllegalStateException("Duplicate advancement " + holder.id());
-            } else {
+            } else if (conditions.length == 0) {
                 advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CODEC, holder.value(), getPath(path, holder)));
+            } else {
+                advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CONDITIONAL_CODEC,
+                        Optional.of(new WithConditions<>(List.of(conditions), holder.value())),
+                        getPath(path, holder)));
             }
         });
     }

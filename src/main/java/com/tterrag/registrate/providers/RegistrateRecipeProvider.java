@@ -66,7 +66,7 @@ public class RegistrateRecipeProvider extends RecipeProvider implements Registra
         if (callback == null) {
             throw new IllegalStateException("Cannot accept recipes outside of a call to registerRecipes");
         }
-        callback.accept(id, recipe, advancement);
+        callback.accept(id, recipe, advancement, conditions);
     }
 
     @Override
