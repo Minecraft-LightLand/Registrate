@@ -60,6 +60,9 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     /** A supplier for the entry that will discard the reference to this builder after it is resolved */
     private final LazyRegistryEntry<R, T> safeSupplier = new LazyRegistryEntry<>(this);
 
+    /** Indicates whether this entry should generate tags as optional tag */
+    private boolean isOptional = false;
+
     /**
      * Create the built entry. This method will be lazily resolved at registration time, so it is safe to bake in values from the builder.
      *
@@ -98,10 +101,25 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
             setData(type, (ctx, prov) -> tagsByType.get(type).stream()
                     .map(t -> (TagKey<R>) t)
                     .map(prov::addTag)
-                    .forEach(b -> b.add(TagEntry.element(new ResourceLocation(getOwner().getModid(), getName())))));
+                    .forEach(b -> b.add(asTag())));
         }
         tagsByType.putAll(type, Arrays.asList(tags));
         return (S) this;
+    }
+
+    /**
+     * Mark this entry as optional when generating tags
+     * */
+    @SuppressWarnings("unchecked")
+    public S asOptional(){
+        isOptional = true;
+        return (S) this;
+    }
+
+    protected TagEntry asTag() {
+        ResourceLocation id = new ResourceLocation(getOwner().getModid(), getName());
+        if (isOptional) return TagEntry.optionalElement(id);
+        return TagEntry.element(id);
     }
 
     /**

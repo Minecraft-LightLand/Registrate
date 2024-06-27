@@ -15,6 +15,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.WithConditions;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
@@ -22,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -76,17 +79,23 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
 
     @Override
     public void accept(@Nullable AdvancementHolder holder) {
+        withConditions(holder, List.of());
+    }
+
+    public void withConditions(@Nullable AdvancementHolder holder, List<ICondition> conditions) {
         CachedOutput cache = this.cache;
         if (cache == null) {
             throw new IllegalStateException("Cannot accept advancements outside of act");
         }
         Objects.requireNonNull(holder, "Cannot accept a null advancement");
-        Path path = this.packOutput.getOutputFolder();
+        Path path = getPath(this.packOutput.getOutputFolder(), holder);
         if (!seenAdvancements.add(holder.id())) {
             throw new IllegalStateException("Duplicate advancement " + holder.id());
+        } else if (conditions.isEmpty()) {
+            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CODEC, holder.value(), path));
         } else {
-            Path path1 = getPath(path, holder);
-            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CODEC, holder.value(), path1));
+            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CONDITIONAL_CODEC,
+                    Optional.of(new WithConditions<>(conditions, holder.value())), path));
         }
     }
 
