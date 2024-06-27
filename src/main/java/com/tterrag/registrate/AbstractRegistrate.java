@@ -68,8 +68,6 @@ import com.tterrag.registrate.builders.BlockEntityBuilder;
 import com.tterrag.registrate.builders.BlockEntityBuilder.BlockEntityFactory;
 import com.tterrag.registrate.builders.Builder;
 import com.tterrag.registrate.builders.BuilderCallback;
-import com.tterrag.registrate.builders.EnchantmentBuilder;
-import com.tterrag.registrate.builders.EnchantmentBuilder.EnchantmentFactory;
 import com.tterrag.registrate.builders.EntityBuilder;
 import com.tterrag.registrate.builders.FluidBuilder;
 import com.tterrag.registrate.builders.ItemBuilder;
@@ -1247,23 +1245,24 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
         return entry(name, callback -> new MenuBuilder<T, SC, P>(this, parent, name, callback, factory, screenFactory));
     }
 
-    // Enchantment
-
-    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
-        return enchantment(self(), definition, factory);
-    }
-
-    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(String name, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
-        return enchantment(self(), name, definition, factory);
-    }
-
-    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
-        return enchantment(parent, currentName(), definition, factory);
-    }
-
-    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, String name, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
-        return entry(name, callback -> EnchantmentBuilder.create(this, parent, name, callback, definition, factory));
-    }
+    //fixme
+//    // Enchantment
+//
+//    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+//        return enchantment(self(), definition, factory);
+//    }
+//
+//    public <T extends Enchantment> EnchantmentBuilder<T, S> enchantment(String name, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+//        return enchantment(self(), name, definition, factory);
+//    }
+//
+//    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+//        return enchantment(parent, currentName(), definition, factory);
+//    }
+//
+//    public <T extends Enchantment, P> EnchantmentBuilder<T, P> enchantment(P parent, String name, Enchantment.EnchantmentDefinition definition, EnchantmentFactory<T> factory) {
+//        return entry(name, callback -> EnchantmentBuilder.create(this, parent, name, callback, definition, factory));
+//    }
 
     // Creative Tab
 
