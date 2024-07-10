@@ -117,7 +117,7 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     }
 
     protected TagEntry asTag() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(getOwner().getModid(), getName());
+        ResourceLocation id = new ResourceLocation(getOwner().getModid(), getName());
         if (isOptional) return TagEntry.optionalElement(id);
         return TagEntry.element(id);
     }
