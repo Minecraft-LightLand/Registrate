@@ -83,20 +83,22 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
     }
 
     public void withConditions(@Nullable AdvancementHolder holder, List<ICondition> conditions) {
-        CachedOutput cache = this.cache;
-        if (cache == null) {
-            throw new IllegalStateException("Cannot accept advancements outside of act");
-        }
-        Objects.requireNonNull(holder, "Cannot accept a null advancement");
-        Path path = getPath(this.packOutput.getOutputFolder(), holder);
-        if (!seenAdvancements.add(holder.id())) {
-            throw new IllegalStateException("Duplicate advancement " + holder.id());
-        } else if (conditions.isEmpty()) {
-            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CODEC, holder.value(), path));
-        } else {
-            advancementsToSave.add(DataProvider.saveStable(cache, Advancement.CONDITIONAL_CODEC,
-                    Optional.of(new WithConditions<>(conditions, holder.value())), path));
-        }
+        this.registriesLookup.thenAccept(lookup -> {
+            CachedOutput cache = this.cache;
+            if (cache == null) {
+                throw new IllegalStateException("Cannot accept advancements outside of act");
+            }
+            Objects.requireNonNull(holder, "Cannot accept a null advancement");
+            Path path = getPath(this.packOutput.getOutputFolder(), holder);
+            if (!seenAdvancements.add(holder.id())) {
+                throw new IllegalStateException("Duplicate advancement " + holder.id());
+            } else if (conditions.isEmpty()) {
+                advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CODEC, holder.value(), path));
+            } else {
+                advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CONDITIONAL_CODEC,
+                        Optional.of(new WithConditions<>(conditions, holder.value())), path));
+            }
+        });
     }
 
     private static Path getPath(Path pathIn, AdvancementHolder advancementIn) {
