@@ -83,21 +83,20 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
     }
 
     public void withConditions(@Nullable AdvancementHolder holder, List<ICondition> conditions) {
-        this.registriesLookup.thenAccept((lookup) -> {
+        this.registriesLookup.thenAccept(lookup -> {
             CachedOutput cache = this.cache;
             if (cache == null) {
                 throw new IllegalStateException("Cannot accept advancements outside of act");
             }
             Objects.requireNonNull(holder, "Cannot accept a null advancement");
-            Path path = this.packOutput.getOutputFolder();
+            Path path = getPath(this.packOutput.getOutputFolder(), holder);
             if (!seenAdvancements.add(holder.id())) {
                 throw new IllegalStateException("Duplicate advancement " + holder.id());
             } else if (conditions.isEmpty()) {
-                advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CODEC, holder.value(), getPath(path, holder)));
+                advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CODEC, holder.value(), path));
             } else {
                 advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CONDITIONAL_CODEC,
-                        Optional.of(new WithConditions<>(conditions, holder.value())),
-                        getPath(path, holder)));
+                        Optional.of(new WithConditions<>(conditions, holder.value())), path));
             }
         });
     }

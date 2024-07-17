@@ -97,7 +97,7 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
-import net.neoforged.neoforge.event.entity.SpawnPlacementRegisterEvent;
+import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -201,9 +201,6 @@ public class TestMod {
             .defaultCreativeTab(tab -> tab.withLabelColor(0xFF00AA00))
             .register();
 
-    private final RegistryEntry<IngredientType<?>, IngredientType<DataIngredient>> ingredienttype = registrate.object("data_ingredient")
-            .simple(NeoForgeRegistries.Keys.INGREDIENT_TYPES, () -> DataIngredient.TYPE);
-
     private final AtomicBoolean sawCallback = new AtomicBoolean();
 
     private final ItemEntry<Item> testitem = registrate.object("testitem")
@@ -266,7 +263,7 @@ public class TestMod {
             .entity(TestEntity::new, MobCategory.CREATURE)
             .attributes(Pig::createAttributes)
             .renderer(() -> PigRenderer::new)
-            .spawnPlacement(SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules, SpawnPlacementRegisterEvent.Operation.OR)
+            .spawnPlacement(SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.OR)
             .defaultSpawnEgg(0xFF0000, 0x00FF00)
             .loot((prov, type) -> prov.add(type, LootTable.lootTable()
                     .withPool(LootPool.lootPool()

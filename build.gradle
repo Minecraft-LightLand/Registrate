@@ -132,7 +132,7 @@ publishing {
         }
 
         def mavenToken = System.getenv("MAVEN_TOKEN")
-        if (mavenToken != null) {
+        if (mavenToken != null && !mavenToken.isEmpty()) {
             maven {
                 url = "https://maven.ithundxr.dev/snapshots"
                 credentials {
