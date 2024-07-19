@@ -38,6 +38,7 @@ public interface ProviderType<T extends RegistrateProvider> {
 
 	// SERVER DATA
 	ProviderType<RegistrateDatapackProvider> DYNAMIC = register("dynamic", RegistrateDatapackProvider::new);
+	ProviderType<RegistrateDataMapProvider> DATA_MAP = register("data_map", RegistrateDataMapProvider::new);
 	ProviderType<RegistrateRecipeProvider> RECIPE = register("recipe", RegistrateRecipeProvider::new);
 	ProviderType<RegistrateAdvancementProvider> ADVANCEMENT = register("advancement", RegistrateAdvancementProvider::new);
 	ProviderType<RegistrateLootTableProvider> LOOT = register("loot", RegistrateLootTableProvider::new);
