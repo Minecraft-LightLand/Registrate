@@ -32,6 +32,8 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -288,6 +290,33 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
      */
     public ItemBuilder<T, P> compostable(float chance) {
         return dataMap(NeoForgeDataMaps.COMPOSTABLES, new Compostable(chance));
+    }
+
+    @Nullable
+    private NonNullSupplier<Supplier<IClientItemExtensions>> clientExtension;
+
+    /**
+     * Register a client extension for this item. The {@link IClientItemExtensions} instance can be shared across many items.
+     *
+     * @param clientExtension
+     *            The client extension to register for this item
+     * @return this {@link ItemBuilder}
+     */
+    public ItemBuilder<T, P> clientExtension(NonNullSupplier<Supplier<IClientItemExtensions>> clientExtension) {
+        if (this.clientExtension == null) {
+            RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerClientExtension);
+        }
+        this.clientExtension = clientExtension;
+        return this;
+    }
+
+    protected void registerClientExtension() {
+        OneTimeEventReceiver.addModListener(getOwner(), RegisterClientExtensionsEvent.class, e -> {
+            NonNullSupplier<Supplier<IClientItemExtensions>> clientExtension = this.clientExtension;
+            if (clientExtension != null) {
+                e.registerItem(clientExtension.get().get(), getEntry());
+            }
+        });
     }
 
     /**
