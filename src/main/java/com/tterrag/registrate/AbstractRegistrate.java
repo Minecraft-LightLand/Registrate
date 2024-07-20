@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.mojang.serialization.Codec;
+import com.tterrag.registrate.providers.*;
 import lombok.Setter;
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
@@ -40,7 +41,6 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -76,10 +76,6 @@ import com.tterrag.registrate.builders.MenuBuilder.ForgeMenuFactory;
 import com.tterrag.registrate.builders.MenuBuilder.MenuFactory;
 import com.tterrag.registrate.builders.MenuBuilder.ScreenFactory;
 import com.tterrag.registrate.builders.NoConfigBuilder;
-import com.tterrag.registrate.providers.ProviderType;
-import com.tterrag.registrate.providers.RegistrateDataProvider;
-import com.tterrag.registrate.providers.RegistrateLangProvider;
-import com.tterrag.registrate.providers.RegistrateProvider;
 import com.tterrag.registrate.util.CreativeModeTabModifier;
 import com.tterrag.registrate.util.DebugMarkers;
 import com.tterrag.registrate.util.OneTimeEventReceiver;
@@ -585,9 +581,19 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      */
     public <T extends RegistrateProvider> S addDataGenerator(ProviderType<? extends T> type, NonNullConsumer<? extends T> cons) {
         if (doDatagen.get()) {
+            if (provider != null) throw new IllegalStateException("Cannot add data generator after construction of root generator");
             datagens.put(type, cons);
         }
         return self();
+    }
+
+    private final DataProviderInitializer initializer = new DataProviderInitializer();
+
+    /**
+     * Access datapack registry and data provider dependency settings
+     */
+    public DataProviderInitializer getDataGenInitializer() {
+        return initializer;
     }
 
     private final NonNullSupplier<List<Pair<String, String>>> extraLang = NonNullSupplier.lazy(() -> {

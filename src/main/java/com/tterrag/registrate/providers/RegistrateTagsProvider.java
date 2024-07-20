@@ -14,8 +14,13 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public interface RegistrateTagsProvider<T> extends RegistrateProvider {
+public interface RegistrateTagsProvider<T> extends RegistrateLookupFillerProvider {
+
     TagsProvider.TagAppender<T> addTag(TagKey<T> tag);
+
+    CompletableFuture<TagsProvider.TagLookup<T>> contentsGetter();
+
+	ResourceKey<? extends Registry<T>> registry();
 
     class Impl<T> extends TagsProvider<T> implements RegistrateTagsProvider<T> {
         private final AbstractRegistrate<?> owner;
@@ -49,7 +54,18 @@ public interface RegistrateTagsProvider<T> extends RegistrateProvider {
         public TagAppender<T> addTag(TagKey<T> tag) {
             return super.tag(tag);
         }
-    }
+
+        @Override
+        public CompletableFuture<HolderLookup.Provider> getFilledProvider() {
+            return createContentsProvider();
+        }
+
+		@Override
+		public ResourceKey<? extends Registry<T>> registry() {
+			return registryKey;
+		}
+
+	}
 
     class IntrinsicImpl<T> extends IntrinsicHolderTagsProvider<T> implements RegistrateTagsProvider<T> {
         private final AbstractRegistrate<?> owner;
@@ -83,5 +99,16 @@ public interface RegistrateTagsProvider<T> extends RegistrateProvider {
         public IntrinsicTagAppender<T> addTag(TagKey<T> tag) {
             return super.tag(tag);
         }
-    }
+
+        @Override
+        public CompletableFuture<HolderLookup.Provider> getFilledProvider() {
+            return createContentsProvider();
+        }
+
+		@Override
+		public ResourceKey<? extends Registry<T>> registry() {
+			return registryKey;
+		}
+
+	}
 }
