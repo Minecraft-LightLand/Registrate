@@ -48,6 +48,9 @@ import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -355,6 +358,33 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      */
     public BlockBuilder<T, P> recipe(NonNullBiConsumer<DataGenContext<Block, T>, RegistrateRecipeProvider> cons) {
         return setData(ProviderType.RECIPE, cons);
+    }
+
+    @Nullable
+    private NonNullSupplier<Supplier<IClientBlockExtensions>> clientExtension;
+
+    /**
+     * Register a client extension for this block. The {@link IClientBlockExtensions} instance can be shared across many items.
+     *
+     * @param clientExtension
+     *            The client extension to register for this block
+     * @return this {@link BlockBuilder}
+     */
+    public BlockBuilder<T, P> clientExtension(NonNullSupplier<Supplier<IClientBlockExtensions>> clientExtension) {
+        if (this.clientExtension == null) {
+            RegistrateDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerClientExtension);
+        }
+        this.clientExtension = clientExtension;
+        return this;
+    }
+
+    protected void registerClientExtension() {
+        OneTimeEventReceiver.addModListener(getOwner(), RegisterClientExtensionsEvent.class, e -> {
+            NonNullSupplier<Supplier<IClientBlockExtensions>> clientExtension = this.clientExtension;
+            if (clientExtension != null) {
+                e.registerBlock(clientExtension.get().get(), getEntry());
+            }
+        });
     }
 
     /**
