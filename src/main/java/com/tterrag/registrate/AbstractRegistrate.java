@@ -303,7 +303,7 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      *            The event
      */
     protected void onBuildCreativeModeTabContents(BuildCreativeModeTabContentsEvent event) {
-        var modifier = new CreativeModeTabModifier(event::getFlags, event::hasPermissions, event::accept);
+        var modifier = new CreativeModeTabModifier(event::getFlags, event::hasPermissions, event::accept, event::getParameters);
 
         creativeModeTabModifiers.forEach((key, value) -> {
             if(event.getTabKey().equals(key)) value.accept(modifier);
