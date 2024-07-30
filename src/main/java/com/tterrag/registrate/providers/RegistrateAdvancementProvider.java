@@ -102,7 +102,7 @@ public class RegistrateAdvancementProvider implements RegistrateProvider, Consum
     }
 
     private static Path getPath(Path pathIn, AdvancementHolder advancementIn) {
-        return pathIn.resolve("data/" + advancementIn.id().getNamespace() + "/advancements/" + advancementIn.id().getPath() + ".json");
+        return pathIn.resolve("data/" + advancementIn.id().getNamespace() + "/advancement/" + advancementIn.id().getPath() + ".json");
     }
 
     public String getName() {
